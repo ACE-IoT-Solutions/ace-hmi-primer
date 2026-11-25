@@ -125,7 +125,7 @@ export const lessons: Lesson[] = [
     example:
       "Instead of a bright green fan and blue duct during all normal operation, use quiet normal states and an explicit “SUPPLY TEMPERATURE HIGH” label when needed. An alarm border and text keep the meaning visible in grayscale.",
     exercise:
-      "Toggle color-heavy styling and grayscale in the lab. Check whether you can still identify the abnormal condition and explain it.",
+      "Compare the animated 3D mimic with the task-focused display. Pause the motion, then add operating context to the mimic. Identify which change supplies evidence about the process. Check both displays in grayscale.",
     takeaway:
       "A condition should remain understandable when its color disappears.",
     clauses: "4.2.2.1.2; 5.2.1.1–5.2.1.5",
@@ -153,7 +153,7 @@ export const lessons: Lesson[] = [
     example:
       "A last-received temperature of 18.5 °C is shown as “STALE · last update 12 min ago” after a simulated communications loss. The lab does not infer the current process condition from that old value.",
     exercise:
-      "Select the stale-data scenario. Identify what is known, what is unknown, and what an operator should verify before acting.",
+      "Compare rising and recovering temperature at the same 24.4 °C reading, then select the stale-data scenario. Identify which evidence distinguishes direction of change and which values can be trusted.",
     takeaway:
       "A precise-looking value is useful only when its context is trustworthy.",
     clauses: "5.1.4; 6.2; 6.3.1; 7.2.1.2",

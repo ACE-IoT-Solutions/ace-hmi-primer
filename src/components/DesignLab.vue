@@ -1,23 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { temperatureState, validateTarget, type Scenario } from "../lib/lab";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import {
+  labScenarios,
+  temperatureState,
+  validateTarget,
+  type Scenario,
+} from "../lib/lab";
+import AnimatedAhu from "./AnimatedAhu.vue";
+import OperatingContext from "./OperatingContext.vue";
 const scenario = ref<Scenario>("high");
-const colorHeavy = ref(false);
 const grayscale = ref(false);
-const showContext = ref(true);
+const showContext = ref(false);
+const motion = ref(true);
+const reducedMotion = ref(false);
+let motionPreference: MediaQueryList | undefined;
+function syncMotionPreference() {
+  reducedMotion.value = motionPreference?.matches ?? false;
+}
+onMounted(() => {
+  motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  syncMotionPreference();
+  motionPreference.addEventListener("change", syncMotionPreference);
+});
+onUnmounted(() =>
+  motionPreference?.removeEventListener("change", syncMotionPreference),
+);
 const level = ref(2);
 const target = ref(16);
 const draft = ref("16.0");
 const pending = ref<number | null>(null);
 const error = ref("");
 const feedback = ref("No command sent.");
-const actual = computed(() =>
-  scenario.value === "normal" ? 16.2 : scenario.value === "high" ? 24.4 : 18.5,
+const snapshot = computed(() => labScenarios[scenario.value]);
+const paused = computed(() => !motion.value || reducedMotion.value);
+const evidence = computed(() =>
+  scenario.value === "normal"
+    ? `With the accepted target at ${target.value.toFixed(1)} °C and measured temperature at ${snapshot.value.actual.toFixed(1)} °C: ${temperatureState(snapshot.value.actual, target.value, false).description}. The recent history is stable, and fan command and proof agree. A changed target can make the same measurement unacceptable without changing the process snapshot.`
+    : snapshot.value.evidence,
 );
-const state = computed(() =>
-  temperatureState(actual.value, target.value, scenario.value === "stale"),
-);
-const levels = [
+const levels = computed(() => [
   {
     name: "Overview",
     scope: "Operator span of responsibility",
@@ -38,16 +59,16 @@ const levels = [
       "Cooling demand and fan proof",
       "Routine target entry and feedback",
     ],
-    note: "A Level 2 view groups information and controls for routine monitoring and changes. The example below serves that role.",
+    note: "A Level 2 view groups information and controls for routine monitoring and changes. The task-focused example serves that role.",
   },
   {
     name: "Detail",
     scope: "AHU-01 cooling subsystem",
     task: "Why is supply temperature deviating?",
     items: [
-      "Cooling valve command · 92%",
+      `Cooling valve command · ${snapshot.value.valveCommand}%`,
       "Chilled-water availability · available",
-      "Supply fan · commanded on / proof on",
+      `Supply fan · command ${snapshot.value.fanCommand ? "ON" : "OFF"} / proof ${snapshot.value.fanProof ? "ON" : "OFF"}`,
     ],
     note: "Subsystem detail supports diagnosis. A valve command does not prove valve movement, flow, or cooling capacity. These values are fixed teaching examples.",
   },
@@ -62,18 +83,7 @@ const levels = [
     ],
     note: "Focused diagnostics can live in a faceplate or popup. Show data-quality and device evidence here; avoid making this the only place an operator can notice lost data.",
   },
-];
-const trend = computed(() =>
-  scenario.value === "normal"
-    ? [16.7, 16.5, 16.4, 16.2, 16.1, 16.2]
-    : scenario.value === "high"
-      ? [16.4, 17.1, 18.5, 20.2, 22.4, 24.4]
-      : [16.4, 16.8, 17.2, 17.7, 18.1, 18.5],
-);
-const y = (value: number) => 150 - ((value - 12) / 16) * 125;
-const points = computed(() =>
-  trend.value.map((v, i) => `${60 + i * 82},${y(v)}`).join(" "),
-);
+]);
 function request() {
   error.value = validateTarget(draft.value);
   pending.value = error.value ? null : Number(draft.value);
@@ -102,144 +112,293 @@ function cancel() {
       decisions become easier. All equipment and values are simulated.
     </p>
   </section>
-  <section class="lab-layout">
-    <aside class="panel lab-controls">
-      <h2>Shape the display</h2>
+  <section class="comparison-intro">
+    <span class="eyebrow">EQUIPMENT ART / OPERATING INFORMATION</span>
+    <h2>What did the “advanced graphics” add?</h2>
+    <p>
+      A familiar specification asks for
+      <strong
+        >full-color 3D equipment, rotating fans, and animated airflow</strong
+      >. This original teaching example supplies those features. Compare it with
+      a display organized around the operator’s question. Both read the same
+      snapshot.
+    </p>
+    <p class="muted">
+      These are illustrative designs, not screenshots of a vendor product. Judge
+      the information and task support rather than the rendering style.
+    </p>
+  </section>
+  <section class="lab-workbench" aria-label="AHU display comparison">
+    <div class="panel comparison-controls">
       <label class="field"
         >Process scenario<select v-model="scenario">
           <option value="normal">Normal temperature</option>
           <option value="high">Rising supply temperature</option>
+          <option value="recovering">Recovering · same 24.4 °C reading</option>
+          <option value="fan-fault">Fan commanded on / proof lost</option>
           <option value="stale">Temperature link lost / stale data</option>
         </select></label
-      ><label class="toggle"
-        ><input v-model="colorHeavy" type="checkbox" /> Color-heavy normal
-        equipment</label
-      ><label class="toggle"
+      >
+      <label class="toggle"
+        ><input v-model="showContext" type="checkbox" /> Add operating context
+        to the 3D mimic</label
+      >
+      <label class="toggle"
         ><input v-model="grayscale" type="checkbox" /> View in grayscale</label
-      ><label class="toggle"
-        ><input v-model="showContext" type="checkbox" /> Show target, band, and
-        trend</label
       >
-      <div class="lesson-note">
-        <strong>Try this</strong>
-        <p>
-          With the high-temperature scenario selected, remove context. Can the
-          isolated number tell you whether the process is recovering?
-        </p>
-      </div>
-      <p class="source">
-        Based on § 5.1.4, 5.2.1.2–5.2.1.5, and 6.3.1. Colors, limits, and AHU
-        data are ACE examples.
-      </p>
-    </aside>
-    <div class="hmi-screen" :class="{ colorful: colorHeavy, grayscale }">
-      <div class="screen-header">
-        <span>WEST BUILDING / AHU-01</span><span>TRAINING DISPLAY</span>
-      </div>
-      <div
-        class="screen-status"
-        :class="{ attention: state.attention }"
-        role="status"
-      >
-        <strong>{{ state.attention ? "⚠ " : "" }}{{ state.label }}</strong
-        ><span>{{ state.description }}</span>
-      </div>
-      <div class="process-path" aria-label="Air path">
-        <div><span>RETURN AIR</span><strong>23.0 °C</strong></div>
-        <div class="process-device coil">
-          <span>COOLING COIL</span
-          ><strong>Valve {{ scenario === "normal" ? "34" : "92" }}%</strong>
-        </div>
-        <div class="process-device fan">
-          <span>SUPPLY FAN</span><strong>Proof: ON</strong>
-        </div>
-        <div>
-          <span>SUPPLY AIR</span><strong>{{ actual.toFixed(1) }} °C</strong
-          ><small v-if="scenario === 'stale'">LAST KNOWN VALUE</small>
-        </div>
-      </div>
-      <div class="measurement">
-        <div>
-          <span>SUPPLY AIR TEMPERATURE</span
-          ><strong>{{ actual.toFixed(1) }} <small>°C</small></strong>
-        </div>
-        <div v-if="showContext">
-          <span>ACCEPTED TARGET</span
-          ><strong>{{ target.toFixed(1) }} <small>°C</small></strong>
-        </div>
-      </div>
-      <div v-if="showContext" class="trend-panel">
-        <div class="section-top">
-          <strong>Supply temperature · °C</strong
-          ><span>{{
-            scenario === "stale"
-              ? "Historical data ending 12 min ago"
-              : "Last 30 minutes"
-          }}</span>
-        </div>
-        <svg
-          viewBox="0 0 520 195"
-          role="img"
-          :aria-label="`Supply temperature trend: ${trend.join(', ')} degrees Celsius. Target ${target.toFixed(1)}. ${scenario === 'stale' ? 'Ends 12 minutes ago; no current data.' : 'Over the last 30 minutes.'}`"
+      <div class="motion-controls">
+        <button
+          :disabled="reducedMotion"
+          :aria-pressed="!paused"
+          @click="motion = !motion"
         >
-          <rect
-            x="60"
-            :y="y(target + 2)"
-            width="410"
-            :height="y(target - 2) - y(target + 2)"
-            fill="#e1e4e7"
-          />
-          <g v-for="tick in [12, 16, 20, 24, 28]" :key="tick">
-            <line
-              x1="60"
-              x2="470"
-              :y1="y(tick)"
-              :y2="y(tick)"
-              stroke="#ccd1d6"
-            />
-            <text x="25" :y="y(tick) + 5">{{ tick }}</text>
-          </g>
-          <line
-            x1="60"
-            x2="470"
-            :y1="y(target)"
-            :y2="y(target)"
-            stroke="#3e4854"
-            stroke-dasharray="6 4"
-          />
-          <polyline
-            :points="points"
-            fill="none"
-            stroke="#174c7c"
-            stroke-width="3"
-          />
-          <circle cx="470" :cy="y(actual)" r="5" fill="#174c7c" />
-          <text x="60" y="184">
-            {{ scenario === "stale" ? "42 min ago" : "30 min ago" }}
-          </text>
-          <text x="400" y="184">
-            {{ scenario === "stale" ? "12 min ago" : "Now" }}
-          </text>
-        </svg>
-        <p>
-          Solid: measured temperature · Dashed: accepted target · Shaded:
-          illustrative ±2 °C band
+          {{
+            paused ? "Play decorative animation" : "Pause decorative animation"
+          }}
+        </button>
+        <p role="status">
+          {{
+            reducedMotion
+              ? "Motion is paused by your reduced-motion preference."
+              : paused
+                ? "Animation paused. Process data and history are unchanged."
+                : "Motion follows the fan command, not a measured air stream."
+          }}
         </p>
       </div>
-      <p v-else class="context-hidden">
-        Context hidden for comparison. The number alone gives no direction of
-        change.
-      </p>
-      <p class="screen-footnote">
-        Fixed teaching data ·
-        {{
-          scenario === "stale"
-            ? "Current process state unknown"
-            : "Simulated data quality: good"
-        }}
-        · No connection to real equipment
+    </div>
+    <div
+      class="comparison-screens"
+      :class="{ 'comparison-grayscale': grayscale }"
+    >
+      <article class="comparison-card mimic-card" aria-labelledby="mimic-title">
+        <div class="comparison-title">
+          <span class="eyebrow">EQUIPMENT MIMIC</span>
+          <h3 id="mimic-title">Depth, shine, and movement.</h3>
+          <p>Realistic equipment form with scattered point values.</p>
+        </div>
+        <AnimatedAhu :snapshot="snapshot" :paused="paused" />
+        <dl class="mimic-readings">
+          <div>
+            <dt>Supply temperature{{ snapshot.stale ? " · retained" : "" }}</dt>
+            <dd>{{ snapshot.actual.toFixed(1) }} °C</dd>
+          </div>
+          <div>
+            <dt>Cooling valve command</dt>
+            <dd>{{ snapshot.valveCommand }}%</dd>
+          </div>
+          <div>
+            <dt>Supply fan command</dt>
+            <dd>{{ snapshot.fanCommand ? "ON" : "OFF" }}</dd>
+          </div>
+          <div>
+            <dt>Supply fan run proof</dt>
+            <dd>{{ snapshot.fanProof ? "ON" : "OFF" }}</dd>
+          </div>
+        </dl>
+        <div v-if="showContext" class="hmi-screen added-context">
+          <p class="context-added-label">
+            Same operating information added to the mimic
+          </p>
+          <OperatingContext :snapshot="snapshot" :target="target" mimic />
+        </div>
+        <div v-else class="mimic-context-absent">
+          <strong>What is missing?</strong>
+          <p>
+            No target comparison or time history is presented here. The point
+            values are real within this simulation; the moving air and metal
+            surfaces add no measurements.
+          </p>
+        </div>
+      </article>
+      <article
+        class="comparison-card operating-card"
+        aria-labelledby="operating-title"
+      >
+        <div class="comparison-title">
+          <span class="eyebrow">TASK-FOCUSED DISPLAY</span>
+          <h3 id="operating-title">Condition, context, and evidence.</h3>
+          <p>The same points, grouped for monitoring and diagnosis.</p>
+        </div>
+        <div class="hmi-screen">
+          <div class="screen-header">
+            <span>WEST BUILDING / AHU-01</span><span>TRAINING DISPLAY</span>
+          </div>
+          <OperatingContext :snapshot="snapshot" :target="target" />
+          <div class="process-path" aria-label="Air path">
+            <div><span>RETURN AIR</span><strong>23.0 °C</strong></div>
+            <div class="process-device coil">
+              <span>COOLING COIL</span
+              ><strong>Command {{ snapshot.valveCommand }}%</strong>
+            </div>
+            <div class="process-device fan">
+              <span>SUPPLY FAN</span
+              ><strong>Proof: {{ snapshot.fanProof ? "ON" : "OFF" }}</strong>
+            </div>
+            <div>
+              <span>SUPPLY AIR</span
+              ><strong>{{ snapshot.actual.toFixed(1) }} °C</strong
+              ><small v-if="snapshot.stale">LAST KNOWN VALUE</small>
+            </div>
+          </div>
+          <p class="screen-footnote">
+            Fixed teaching data ·
+            {{
+              snapshot.stale
+                ? "Current temperature unknown; other example signals remain available"
+                : "Simulated data quality: good"
+            }}
+            · No connection to real equipment
+          </p>
+        </div>
+      </article>
+    </div>
+    <div class="comparison-observation">
+      <strong>{{
+        showContext
+          ? "The context improved the mimic. The 3D rendering did not create that context."
+          : "Pause the motion. The temperature, proof, quality, and trend do not change."
+      }}</strong>
+      <p>
+        With context enabled, both displays use the same status, measurements,
+        and trend component. This separates the benefit of useful information
+        from the choice to render equipment in 3D.
       </p>
     </div>
+  </section>
+  <section class="panel scenario-review" aria-labelledby="scenario-question">
+    <span class="eyebrow">READ THE PROCESS</span>
+    <h2 id="scenario-question">{{ snapshot.question }}</h2>
+    <p>
+      Look at the mimic first, then the operating display. Identify the evidence
+      you would use before taking action.
+    </p>
+    <details :key="scenario">
+      <summary>Reveal the operating evidence</summary>
+      <div class="evidence-grid">
+        <div>
+          <h3>What the signals tell you</h3>
+          <p>{{ evidence }}</p>
+        </div>
+        <div>
+          <h3>What the artwork cannot establish</h3>
+          <p>{{ snapshot.artLimit }}</p>
+        </div>
+      </div>
+    </details>
+    <p class="source">
+      § 5.1.4; 5.2.1.4–5.2.1.5; 6.3.1; 7.2.1.2. Scenarios, example thresholds,
+      and the command-driven animation are ACE teaching choices.
+    </p>
+  </section>
+  <section
+    class="panel graphics-review"
+    aria-labelledby="graphics-review-title"
+  >
+    <span class="eyebrow">LOOK PAST THE FEATURE LIST</span>
+    <h2 id="graphics-review-title">
+      A rendering feature is not an operating requirement.
+    </h2>
+    <div class="comparison-table-wrap">
+      <table class="comparison-table">
+        <caption>
+          What to ask when reviewing an “advanced graphics” specification
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Specified feature</th>
+            <th scope="col">What it establishes here</th>
+            <th scope="col">Information the operator actually needs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Reflective 3D equipment</th>
+            <td>Equipment form and spatial appearance.</td>
+            <td>
+              Identity, operating state, and relationships needed for the task.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Continuously rotating fan</th>
+            <td>The command is ON; rotation follows that same bit.</td>
+            <td>
+              Command and separate run proof, with their mismatch made apparent.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Moving blue air stream</th>
+            <td>An illustration; no airflow sensor is modeled.</td>
+            <td>
+              Measured airflow and its required value, if those points exist. Do
+              not invent them from an animation.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Colored cooling coil</th>
+            <td>A cooling-related component and its valve command.</td>
+            <td>
+              Actual temperature response, target, history, and available
+              diagnostic measurements.
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Many “live” numeric values</th>
+            <td>A snapshot, or retained values if quality is stale.</td>
+            <td>
+              Units, deviation, direction of change, and an explicit indication
+              of data quality.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="lesson-note">
+      <h3>Use 3D where the task calls for it.</h3>
+      <p>
+        Spatial orientation, locating equipment, and maintenance training can
+        benefit from an equipment model. That is a different task from deciding
+        whether supply temperature is deteriorating. Demonstrate the benefit on
+        the actual operator task; decorative depth and motion alone provide no
+        additional process evidence in this example.
+      </p>
+    </div>
+  </section>
+  <section class="panel specification-example">
+    <span class="eyebrow">WRITE A BETTER SPECIFICATION</span>
+    <h2>Buy task support you can verify.</h2>
+    <div class="evidence-grid">
+      <div>
+        <h3>Appearance-only wording</h3>
+        <blockquote>
+          Provide realistic 3D AHU graphics with animated fans, colored coils,
+          and moving air streams.
+        </blockquote>
+        <p>
+          Acceptance checks whether the art and motion are present. It does not
+          establish whether an operator can diagnose a warm-air complaint.
+        </p>
+      </div>
+      <div>
+        <h3>Task-based wording</h3>
+        <blockquote>
+          For the AHU warm-air diagnostic task, show supply temperature,
+          accepted target, engineering units, recent history, and data quality.
+          Distinguish fan command from run proof and make their mismatch
+          apparent. With operators, verify detection and interpretation of
+          rising temperature, recovery, lost proof, and stale data.
+        </blockquote>
+        <p>
+          Define the history window, performance criteria, and test conditions
+          for your facility. Artwork can be added, but it does not replace this
+          evidence.
+        </p>
+      </div>
+    </div>
+    <p class="source">
+      Original example specification language, not a quotation or a universal
+      ISA requirement.
+    </p>
   </section>
   <section class="panel hierarchy">
     <div class="section-top">
@@ -282,7 +441,7 @@ function cancel() {
       <p>
         Try an invalid entry, cancel a valid change, then confirm it. The
         accepted target updates above; the fixed measured temperature remains a
-        separate observation.
+        separate observation in both displays.
       </p>
       <p class="muted">
         The 12–20 °C limit and instantaneous acceptance are teaching choices,

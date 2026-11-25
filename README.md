@@ -21,14 +21,14 @@ Completed results can be collected in Google Sheets and optionally added to Pipe
 ## Learning resources
 
 - Eight lessons: operator tasks, lifecycle and system standards, display hierarchy, visual emphasis, information context, interaction, performance, and validation/training.
-- AHU design lab: normal, high-temperature, and stale-temperature scenarios; presentation and grayscale comparisons; context and trend toggles; four-level hierarchy explorer; validated and confirmed simulated target changes.
+- AHU design lab: side-by-side animated 3D equipment mimic and task-focused operating display; normal, rising, recovering, lost fan proof, and stale-temperature scenarios; pause motion without changing data; add identical operating context to the mimic; grayscale comparison; scenario evidence review; graphics-specification critique and task-based specification example; four-level hierarchy explorer; validated and confirmed simulated target changes.
 - Searchable glossary with 26 terms and source locators.
 - Forty original practice questions, five per lesson, with explanations, source clauses, and explicit basis labels. Rounds contain 15 distinct questions.
 - Results review, JSON result download, and a printable project review checklist.
 
 The quiz prioritizes never-attempted questions, then questions whose latest answer was incorrect, then prior correct answers. It reports latest-answer accuracy separately from questions answered correctly at least once. Current rounds and answers survive reloads. Revision changes invalidate old attempts for that question and discard affected saved rounds.
 
-The design lab uses fixed teaching data, not a live process simulation or connection to equipment. Its thresholds, operating band, targets, and command confirmation are illustrative ACE choices. Changing an accepted target does not change the measured temperature. Loss of the simulated temperature link makes the current temperature unknown rather than turning the retained reading into a current observation.
+The design lab uses fixed teaching data, not a live process simulation or connection to equipment. The 3D-style artwork is original SVG with CSS animation, not a vendor screenshot. Its fan and illustrated air stream follow the fan command, so the animation continues when run proof is lost. Both presentations share one scenario snapshot; enabling context on the mimic renders the same operating-context component used by the task-focused display. Rising and recovering scenarios deliberately share instantaneous readings but have different histories. Its thresholds, operating band, targets, and command confirmation are illustrative ACE choices. Changing an accepted target does not change the measured temperature. Loss of the simulated temperature link makes the current temperature unknown rather than turning the retained reading into a current observation.
 
 ## Sources and scope
 

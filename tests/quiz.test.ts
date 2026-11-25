@@ -17,7 +17,7 @@ import {
   selectQuestions,
   startQuiz,
 } from "../src/lib/quiz";
-import { temperatureState, validateTarget } from "../src/lib/lab";
+import { labScenarios, temperatureState, validateTarget } from "../src/lib/lab";
 
 test("question bank has unique IDs, complete original entries, source clauses, and lesson coverage", () => {
   assert.equal(questions.length, 40);
@@ -175,6 +175,37 @@ test("stale data never implies a known current process condition", () => {
   );
   assert.equal(temperatureState(12, 16, false).label, "SUPPLY TEMPERATURE LOW");
   assert.equal(temperatureState(16, 16, false).attention, false);
+});
+test("rising and recovering snapshots have identical instantaneous signals and opposite histories", () => {
+  const {
+    trend: risingHistory,
+    question: _q1,
+    evidence: _e1,
+    artLimit: _a1,
+    ...rising
+  } = labScenarios.high;
+  const {
+    trend: recoveringHistory,
+    question: _q2,
+    evidence: _e2,
+    artLimit: _a2,
+    ...recovering
+  } = labScenarios.recovering;
+  assert.deepEqual(rising, recovering);
+  assert.ok(risingHistory[0]! < risingHistory.at(-1)!);
+  assert.ok(recoveringHistory[0]! > recoveringHistory.at(-1)!);
+  for (const snapshot of Object.values(labScenarios))
+    assert.equal(snapshot.trend.at(-1), snapshot.actual);
+});
+test("fan proof loss is separate from commanded operation; temperature-link loss leaves current temperature unknown", () => {
+  assert.equal(labScenarios["fan-fault"].fanCommand, true);
+  assert.equal(labScenarios["fan-fault"].fanProof, false);
+  assert.equal(labScenarios.stale.stale, true);
+  assert.equal(
+    temperatureState(labScenarios.stale.actual, 16, labScenarios.stale.stale)
+      .label,
+    "STALE DATA",
+  );
 });
 test("illustrative command limits reject blank, nonfinite, out-of-range and excess-precision entries", () => {
   for (const value of [

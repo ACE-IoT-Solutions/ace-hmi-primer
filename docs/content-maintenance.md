@@ -29,7 +29,11 @@ Edit `src/data/lessons.ts` and `src/data/glossary.ts`. Preserve stable lesson ID
 
 ## Design lab
 
-The lab’s process values are fixed teaching data. Preserve explicit labels for simulated data, stale observations, illustrative ranges, and controller acceptance. Do not imply that an entered or accepted command establishes physical process response. Test scenario switching, grayscale legibility, invalid input, cancel, and confirmation after changing it.
+The lab’s process values are fixed teaching data. Preserve explicit labels for simulated data, stale observations, illustrative ranges, and controller acceptance. Do not imply that an entered or accepted command establishes physical process response. The comparison uses one `labScenarios` snapshot for both presentations. `AnimatedAhu.vue` renders the original 3D-style SVG artwork; its rotation and moving air intentionally follow the fan command. `OperatingContext.vue` supplies the same operating information to the task-focused display and to the mimic when context is enabled. Keep the physical data unchanged when pausing animation or changing presentation.
+
+The rising and recovering snapshots deliberately have identical instantaneous temperature, command, and proof values; only the history differs. Preserve that controlled comparison. The lost-proof scenario leaves the command ON and proof OFF. A spinning graphic must not be described as measured movement, and illustrated air must not be described as measured airflow. The stale scenario affects the supply-temperature link; other example signals remain available.
+
+Test scenario switching, context equality, motion pause, reduced-motion preferences, grayscale legibility, invalid input, cancel, and confirmation after changing it. Keep specification examples labeled as original teaching language rather than standard requirements. No quiz questions or receiver metadata need to change for a lab-only presentation update.
 
 ## Visual system updates
 

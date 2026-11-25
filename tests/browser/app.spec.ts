@@ -67,6 +67,88 @@ test("lab distinguishes stale state and separates accepted target from actual te
     page.getByRole("heading", { name: "Can I trust this observation?" }),
   ).toBeVisible();
 });
+test("decorative motion adds no process evidence; shared context distinguishes identical readings", async ({
+  page,
+}) => {
+  await page.goto("/#lab");
+  const mimic = page.locator(".mimic-card"),
+    operating = page.locator(".operating-card");
+  const readings = await mimic.locator(".mimic-readings").innerText();
+  const beforeTrend = await operating
+    .getByRole("img", { name: /Supply temperature trend/ })
+    .getAttribute("aria-label");
+  await page
+    .getByRole("button", { name: "Pause decorative animation" })
+    .click();
+  await expect(page.locator(".fan-rotor")).toHaveCSS(
+    "animation-play-state",
+    "paused",
+  );
+  await expect(mimic.locator(".mimic-readings")).toHaveText(
+    readings.replace(/\n/g, " "),
+    { useInnerText: true },
+  );
+  expect(
+    await operating
+      .getByRole("img", { name: /Supply temperature trend/ })
+      .getAttribute("aria-label"),
+  ).toBe(beforeTrend);
+  await page.getByLabel("Process scenario").selectOption("recovering");
+  expect(await mimic.locator(".mimic-readings").innerText()).toBe(readings);
+  expect(
+    await operating
+      .getByRole("img", { name: /Supply temperature trend/ })
+      .getAttribute("aria-label"),
+  ).not.toBe(beforeTrend);
+  await page.getByLabel("Add operating context to the 3D mimic").check();
+  expect(await mimic.locator(".operating-context").innerText()).toBe(
+    await operating.locator(".operating-context").innerText(),
+  );
+  await page.getByRole("button", { name: "Play decorative animation" }).click();
+  await expect(page.locator(".fan-rotor")).toHaveCSS(
+    "animation-play-state",
+    "running",
+  );
+  await page.getByLabel("Process scenario").selectOption("fan-fault");
+  await expect(operating.locator(".screen-status")).toContainText(
+    "FAN COMMAND / PROOF MISMATCH",
+  );
+  await expect(mimic.locator(".mimic-readings")).toContainText("OFF");
+  await expect(page.locator(".fan-rotor")).toHaveCSS(
+    "animation-play-state",
+    "running",
+  );
+  await page
+    .getByText("Reveal the operating evidence", { exact: true })
+    .click();
+  await expect(page.locator(".scenario-review")).toContainText(
+    "keeps spinning when proof is lost",
+  );
+});
+test("comparison respects reduced motion and stays usable on narrow screens with context shown", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#lab");
+  await expect(
+    page.getByRole("button", { name: "Play decorative animation" }),
+  ).toBeDisabled();
+  await expect(page.locator(".fan-rotor")).toHaveCSS("animation-name", "none");
+  await page.getByLabel("Add operating context to the 3D mimic").check();
+  await page.getByLabel("Process scenario").selectOption("stale");
+  await expect(page.locator(".mimic-card .operating-context")).toContainText(
+    "Current temperature unknown",
+  );
+  await expect(
+    page.locator(".operating-card .operating-context"),
+  ).toContainText("Current temperature unknown");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
 test("quiz answer locks, survives reload and lesson review, completes and exports", async ({
   page,
 }) => {
