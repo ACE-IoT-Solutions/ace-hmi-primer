@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.cocoindex_code/
+test-results/
+playwright-report/
+*.pdf
+.DS_Store
+.env*
+!.env.example
