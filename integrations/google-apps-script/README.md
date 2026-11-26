@@ -7,8 +7,8 @@ The receiver stores each unique session in a Google Sheet, including the email, 
 ## 1. Install the receiver
 
 1. Open the Google Sheet that should hold the results, then choose **Extensions → Apps Script**.
-2. Replace the editor’s `Code.gs` with [Code.gs](Code.gs).
-3. Add a script file named `QuestionBank` and paste [QuestionBank.gs](QuestionBank.gs) into it. Google adds the `.gs` extension. This generated file lets the receiver validate question revisions and calculate the score from the submitted answers.
+2. Replace the editor’s `Code.gs` with the complete [Code.gs](Code.gs). It includes the answer/revision lookup for all 40 questions and every receiver helper; no additional script file is needed.
+3. If you installed an earlier separate `QuestionBank.gs` file, delete it from the Apps Script project so the bank constants are not declared twice.
 4. In **Project Settings**, enable **Show appsscript.json manifest file in editor**. Replace that manifest with [appsscript.json](appsscript.json).
 5. Save all files. Select `setupQuizResults` in the function menu and run it from the editor. Authorize the requested permissions.
 
@@ -43,7 +43,9 @@ Without these properties, Sheet storage still works and the Pipedrive Status col
   "ok": true,
   "service": "ACE HMI Primer quiz results",
   "storage": "bound_workbook",
-  "receiverVersion": "2026-11-25.1"
+  "receiverVersion": "2026-11-25.2",
+  "bankVersion": 1,
+  "questionCount": 40
 }
 ```
 
@@ -98,8 +100,8 @@ npm run quiz:receiver
 npm run quiz:receiver:check
 ```
 
-Replace `QuestionBank.gs` in Apps Script alongside the corresponding frontend update. Replace `Code.gs` or the manifest when those files change. In **Deploy → Manage deployments**, edit the existing deployment and choose **New version → Deploy**. Saving editor files alone does not update a versioned `/exec` deployment. Keeping the deployment preserves its URL.
+The generator updates the marked question-bank section inside `Code.gs`, preserving the rest of the receiver. Replace the complete `Code.gs` in Apps Script alongside the corresponding frontend update. Replace the manifest when its permissions or configuration change. In **Deploy → Manage deployments**, edit the existing deployment and choose **New version → Deploy**. Saving editor files alone does not update a versioned `/exec` deployment. Keeping the deployment preserves its URL.
 
 Run `diagnoseQuizResults` from the editor for a read-only report of the bound workbook URL, tab name, and row count. It writes no records and contacts no CRM. If the destination is correct but public health is outdated, check that the frontend URL points to the deployment you updated. If the bound workbook is unavailable, open Apps Script directly from the destination Sheet and run `setupQuizResults`. The receiver reports an error rather than trying another workbook or requesting broader spreadsheet access.
 
-Automated tests use mocked Sheets, CRM, and HTTP services. No live deployment, result, or contact is created by those tests. Before relying on production collection, verify the public health response, complete one authorized test round from the deployed frontend, and check the Sheet and (if enabled) Pipedrive. The provided deployment’s read-only health response was verified with `ok: true` and `storage: "bound_workbook"`. No live result or CRM contact has been submitted.
+Automated tests use mocked Sheets, CRM, and HTTP services. No live deployment, result, or contact is created by those tests. Before relying on production collection, verify the public health response, complete one authorized test round from the deployed frontend, and check the Sheet and (if enabled) Pipedrive. A live test round reached the previous receiver but was rejected before storage because its separate question-bank file was missing. The receiver is now self-contained; replace `Code.gs` and redeploy it, then verify the health response includes receiver version `2026-11-25.2` and `questionCount: 40`. The saved test session can then be retried. Updating GitHub or Pages alone does not update an Apps Script deployment.

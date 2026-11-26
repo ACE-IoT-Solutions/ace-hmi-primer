@@ -21,7 +21,7 @@ npm run quiz:review:check
 
 The generated `docs/question-review.html` and `docs/question-review.csv` show every option, answer, rationale, clause, and basis. The CSV includes a review-notes column. Keep annotated copies separately; generation replaces both files. Independent reviewers should check that the clause supports the claim, the modal strength is correct, the answer is unambiguous, and the distractors are reasonable.
 
-The tests intentionally expect five entries for each of the eight lesson topics and forty total. Update the bank-size assertions and user-facing copy together when expanding the curriculum. Round length is defined in `src/lib/quiz.ts`. When answers or revisions change, regenerate `integrations/google-apps-script/QuestionBank.gs` with `npm run quiz:receiver` and update the Apps Script version alongside the frontend release. The build checks the generated receiver metadata for drift. A deployed receiver rejects mismatched revisions.
+The tests intentionally expect five entries for each of the eight lesson topics and forty total. Update the bank-size assertions and user-facing copy together when expanding the curriculum. Round length is defined in `src/lib/quiz.ts`. When answers or revisions change, regenerate the embedded bank section in `integrations/google-apps-script/Code.gs` with `npm run quiz:receiver` and update the Apps Script version alongside the frontend release. The build checks the generated receiver metadata for drift. A deployed receiver rejects mismatched revisions.
 
 ## Lessons and glossary
 

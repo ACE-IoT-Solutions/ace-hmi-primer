@@ -139,10 +139,6 @@ function receiver() {
     },
   });
   vm.runInContext(
-    fs.readFileSync("integrations/google-apps-script/QuestionBank.gs", "utf8"),
-    context,
-  );
-  vm.runInContext(
     fs.readFileSync("integrations/google-apps-script/Code.gs", "utf8"),
     context,
   );
@@ -165,9 +161,10 @@ function receiver() {
     },
   };
 }
-test("generated receiver bank matches frontend revisions and answers", () => {
+test("standalone Code.gs embeds all frontend revisions and answers without loading a helper script", () => {
   const { context } = receiver();
   const bank = vm.runInContext("HMI_QUIZ_BANK", context);
+  assert.equal(Object.keys(bank).length, questions.length);
   for (const q of questions)
     assert.deepEqual(JSON.parse(JSON.stringify(bank[q.id])), {
       revision: q.revision,
@@ -197,6 +194,26 @@ test("setup and health check use the bound workbook without a spreadsheet ID pro
   const health = app.context.doGet();
   assert.equal(health.ok, true);
   assert.equal(health.storage, "bound_workbook");
+  assert.equal(health.receiverVersion, "2026-11-25.2");
+  assert.equal(health.bankVersion, 1);
+  assert.equal(health.questionCount, questions.length);
+});
+test("standalone receiver accepts a mixed 12/15 practice result using its embedded answers", () => {
+  const app = receiver();
+  app.context.setupQuizResults();
+  const data = payload();
+  data.incorrectQuestionIds = data.questionIds.slice(-3);
+  for (const id of data.incorrectQuestionIds)
+    data.answers[id] = (data.answers[id]! + 1) % 4;
+  data.score = 12;
+  data.percentage = 80;
+  const result = app.context.doPost({
+    parameter: { payload: JSON.stringify(data) },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(app.rows[1]![3], 12);
+  assert.equal(app.rows[1]![5], 80);
+  assert.equal(JSON.parse(String(app.rows[1]![12])).length, 3);
 });
 test("receiver writes one consent-bearing row and deduplicates a retried session under lock", () => {
   const app = receiver();

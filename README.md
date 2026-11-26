@@ -14,7 +14,7 @@ npm run dev
 
 Open the URL printed by Vite. The quiz requires an email address and privacy-policy consent before showing questions, matching BACnet Studio and CDL Explorer. Participant details are stored separately from browser-local learning progress. Practice remains usable in memory when storage is blocked; clearing browser data removes saved information.
 
-Completed results can be collected in Google Sheets and optionally added to Pipedrive. The complete [Apps Script integration and setup guide](integrations/google-apps-script/README.md) includes the receiver, manifest, and generated question-bank metadata. Copy `.env.example` to `.env.local` and set `VITE_QUIZ_RESULTS_ENDPOINT` to your deployed `/exec` URL to enable collection; restart Vite or rebuild after changing it. With the variable empty, no result is transmitted.
+Completed results can be collected in Google Sheets and optionally added to Pipedrive. The complete [Apps Script integration and setup guide](integrations/google-apps-script/README.md) includes a self-contained `Code.gs` receiver with embedded question-bank metadata and its manifest. Copy `.env.example` to `.env.local` and set `VITE_QUIZ_RESULTS_ENDPOINT` to your deployed `/exec` URL to enable collection; restart Vite or rebuild after changing it. With the variable empty, no result is transmitted.
 
 **Change email** clears the saved participant and requires consent again. A different email starts a new round; an existing result is never relabeled. Resetting quiz progress retains the saved email. Mastery statistics remain per-browser. Only completed rounds are submitted; entering an email alone does not send a lead or result.
 

@@ -3,7 +3,175 @@
  * HMI Primer receiver, bound directly to the destination spreadsheet.
  */
 
-const QUIZ_RECEIVER_VERSION = '2026-11-25.1';
+// BEGIN GENERATED HMI QUIZ BANK
+// Generated from src/data/questions.json by npm run quiz:receiver.
+// Embedded so Code.gs is the only script file needed by the receiver.
+const HMI_QUIZ_BANK_VERSION = 1;
+const HMI_QUIZ_BANK = Object.freeze({
+  "HMI-001": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-002": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-003": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-004": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-005": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-006": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-007": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-008": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-009": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-010": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-011": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-012": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-013": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-014": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-015": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-016": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-017": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-018": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-019": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-020": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-021": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-022": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-023": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-024": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-025": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-026": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-027": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-028": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-029": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-030": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-031": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-032": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-033": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-034": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-035": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-036": {
+    "revision": 1,
+    "correctIndex": 2
+  },
+  "HMI-037": {
+    "revision": 1,
+    "correctIndex": 1
+  },
+  "HMI-038": {
+    "revision": 1,
+    "correctIndex": 3
+  },
+  "HMI-039": {
+    "revision": 1,
+    "correctIndex": 0
+  },
+  "HMI-040": {
+    "revision": 1,
+    "correctIndex": 2
+  }
+});
+// END GENERATED HMI QUIZ BANK
+
+const QUIZ_RECEIVER_VERSION = '2026-11-25.2';
 const QUIZ_RESULTS_SHEET_NAME = 'HMI Quiz Results';
 const QUIZ_RESULTS_HEADERS = Object.freeze([
   'Submitted At',
@@ -46,7 +214,8 @@ function doGet() {
     const sheet = spreadsheet.getSheetByName(name);
     if (!sheet) throw new Error('Results tab is missing. Run setupQuizResults.');
     checkHeaders_(sheet);
-    return jsonResponse_({ ok: true, service: 'ACE HMI Primer quiz results', storage: 'bound_workbook', receiverVersion: QUIZ_RECEIVER_VERSION });
+    return jsonResponse_({ ok: true, service: 'ACE HMI Primer quiz results', storage: 'bound_workbook', receiverVersion: QUIZ_RECEIVER_VERSION,
+      bankVersion: HMI_QUIZ_BANK_VERSION, questionCount: Object.keys(HMI_QUIZ_BANK).length });
   } catch (error) {
     return jsonResponse_({ ok: false, service: 'ACE HMI Primer quiz results', error: String(error.message || error), receiverVersion: QUIZ_RECEIVER_VERSION });
   }
