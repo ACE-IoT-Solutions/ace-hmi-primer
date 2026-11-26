@@ -46,8 +46,8 @@
             <th scope="row">Colored cooling coil</th>
             <td>A cooling-related component and its valve command.</td>
             <td>
-              Actual temperature response, target, history, and available
-              diagnostic measurements.
+              Actual temperature response, target, history, independent valve
+              position and entering/leaving water temperatures where installed.
             </td>
           </tr>
           <tr>
@@ -103,8 +103,12 @@
           For the AHU warm-air diagnostic task, show supply temperature,
           accepted target, engineering units, recent history, and data quality.
           Distinguish fan command from run proof and make their mismatch
-          apparent. With operators, verify detection and interpretation of
-          rising temperature, recovery, lost proof, and stale data.
+          apparent. Where installed, compare effective valve command with
+          independent position feedback after its travel allowance; show coil
+          entering/leaving water temperatures and point quality. With operators,
+          distinguish valve-travel faults from warm chilled-water supply and
+          unverified feedback as well as rising temperature, recovery and lost
+          proof.
         </blockquote>
         <p>
           Define the history window, performance criteria, and test conditions

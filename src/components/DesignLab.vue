@@ -43,6 +43,8 @@ const snapshot = computed(() => {
       base.points.coolingValve.override,
     ),
     writeState: writeState.value,
+    valveCommandAgeSeconds:
+      valveWrite.value === null ? base.valveCommandAgeSeconds : 0,
     alarms: acknowledged.value.reduce(
       (alarms, id) => acknowledgeAlarm(alarms, id),
       base.alarms,

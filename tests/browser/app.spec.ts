@@ -92,7 +92,7 @@ test("three presentations preserve data and motion state while placing context a
   await expect(page.locator(".contextual-card .operating-context")).toHaveCount(
     0,
   );
-  await expect(page.locator(".ahu-canvas .equipment-callout")).toHaveCount(4);
+  await expect(page.locator(".ahu-canvas .equipment-callout")).toHaveCount(5);
   await expect(page.locator(".fan-rotor")).toHaveCSS(
     "animation-play-state",
     "paused",

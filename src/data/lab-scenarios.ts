@@ -1,5 +1,8 @@
 import type { LabSnapshot, Scenario } from "../lib/lab-types";
-const baseScenarios: Record<string, Partial<LabSnapshot>> = {
+type ScenarioInput = Omit<Partial<LabSnapshot>, "points"> & {
+  points?: Partial<LabSnapshot["points"]>;
+};
+const baseScenarios: Record<string, ScenarioInput> = {
   normal: {
     actual: 16.2,
     trend: [16.7, 16.5, 16.4, 16.2, 16.1, 16.2],
@@ -89,6 +92,8 @@ baseScenarios.cascade = {
     "A chiller trip is upstream of warm AHU supply air and affected zones. Priorities come from the example alarm philosophy, not simply from which alarm appeared last. Acknowledge records recognition; it does not clear an active condition.",
   artLimit:
     "An animated fan can keep running while a shared utility has failed. A functional propagation path and prioritized alarm information connect symptoms to the upstream condition.",
+  enteringWater: 18,
+  leavingWater: 19,
   alarms: [
     alarm("zone-warm", "low", "Zone 101", "Zone comfort limit exceeded"),
     alarm("filter-due", "low", "AHU-01", "Filter maintenance due", "alert"),
@@ -100,6 +105,7 @@ baseScenarios.override = {
   ...baseScenarios.high,
   valveCommand: 0,
   controlDemand: 92,
+  leavingWater: 23,
   points: {
     supplyTemperature: { quality: "good" },
     coolingValve: {
@@ -129,27 +135,68 @@ baseScenarios.disconnected = {
   artLimit:
     "The browser can animate entirely from retained values. Motion is not a display-health check.",
 };
+baseScenarios["valve-stuck"] = {
+  ...baseScenarios.high,
+  valvePosition: 5,
+  enteringWater: 6,
+  leavingWater: 18,
+  question:
+    "Is the cooling valve following its command, or is the chilled-water supply too warm?",
+  evidence:
+    "The effective command is 92%, but independent position feedback remains at 5% after 180 seconds. Entering water is 6.0 °C and leaving water is 18.0 °C. Investigate the actuator, linkage, valve travel and feedback signal first; the mismatch localizes a travel/feedback problem despite cold water at the inlet. Verify physically before declaring a mechanically stuck valve. Water temperatures alone do not prove flow or distinguish every failure.",
+  artLimit:
+    "A valve symbol colored for its 92% command conceals the 5% feedback. The command-position comparison, elapsed travel time and water-side observations supply diagnostic evidence that the rendering cannot establish.",
+};
+baseScenarios["warm-water"] = {
+  ...baseScenarios.high,
+  valvePosition: 92,
+  enteringWater: 18,
+  leavingWater: 19,
+  question:
+    "Does this evidence point first to valve travel or chilled-water availability?",
+  evidence:
+    "Command and independent position feedback both read 92% after 180 seconds, but entering water is 18.0 °C against the illustrative 6–8 °C supply range. Leaving water is 19.0 °C. Investigate upstream chilled-water availability and sensor validity before blaming valve travel. Matching position does not prove flow; inspect flow, isolation, differential pressure and coil condition as needed.",
+  artLimit:
+    "The same blue coil and high command occur in the valve-travel fault. Independent position feedback and entering water temperature separate these two example fault paths.",
+};
+baseScenarios["feedback-lost"] = {
+  ...baseScenarios.high,
+  valvePosition: 5,
+  points: { valvePosition: { quality: "stale", ageSeconds: 720 } },
+  question:
+    "Can a retained valve position establish a current command-position mismatch?",
+  evidence:
+    "The 5% position is retained from 12 minutes ago. It cannot prove the present valve position or establish a current mismatch with the 92% command. Water temperature sensors remain available independently. Restore or verify position feedback before diagnosing a travel fault; water temperatures alone cannot substitute for position or flow proof.",
+  artLimit:
+    "A retained position can look as precise as a fresh one. Quality and sample age determine whether the comparison is valid.",
+};
 export const labScenarios = Object.fromEntries(
-  Object.entries(baseScenarios).map(([id, raw]) => [
-    id,
-    {
-      controlDemand: raw.valveCommand ?? 0,
-      alarms: [],
-      commState: "connected",
-      writeState: { phase: "idle", message: "No write requested." },
-      points: {
-        supplyTemperature: { quality: raw.stale ? "stale" : "good" },
-        coolingValve: { quality: "good" },
+  Object.entries(baseScenarios).map(([id, raw]) => {
+    const points: LabSnapshot["points"] = {
+      supplyTemperature: { quality: raw.stale ? "stale" : "good" },
+      coolingValve: { quality: "good" },
+      valvePosition: { quality: "good", ageSeconds: 5 },
+      enteringWater: { quality: "good", ageSeconds: 5 },
+      leavingWater: { quality: "good", ageSeconds: 5 },
+      ...raw.points,
+    };
+    if (raw.commState === "disconnected")
+      for (const key of Object.keys(points) as (keyof typeof points)[])
+        points[key] = { ...points[key], quality: "unknown", ageSeconds: 720 };
+    return [
+      id,
+      {
+        controlDemand: raw.valveCommand ?? 0,
+        valvePosition: raw.valveCommand ?? 0,
+        valveCommandAgeSeconds: 180,
+        enteringWater: 6,
+        leavingWater: 12,
+        alarms: [],
+        commState: "connected",
+        writeState: { phase: "idle", message: "No write requested." },
+        ...raw,
+        points,
       },
-      ...raw,
-      ...(raw.commState === "disconnected"
-        ? {
-            points: {
-              supplyTemperature: { quality: "unknown" },
-              coolingValve: { quality: "unknown" },
-            },
-          }
-        : {}),
-    },
-  ]),
+    ];
+  }),
 ) as Record<Scenario, LabSnapshot>;

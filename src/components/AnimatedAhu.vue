@@ -350,10 +350,10 @@ const paint = (name: string) => `url(#${id}-${name})`;
   position: relative;
 }
 .contextual {
-  padding-top: 10rem;
+  padding-top: 17rem;
   padding-bottom: 15rem;
 }
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .contextual {
     padding-top: 0;
     padding-bottom: 0;

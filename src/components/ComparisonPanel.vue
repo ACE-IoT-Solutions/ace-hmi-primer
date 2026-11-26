@@ -77,6 +77,13 @@ const evidence = computed(() =>
           <option value="recovering">
             Recovering · same {{ units.temperature(24.4) }} reading
           </option>
+          <option value="valve-stuck">
+            Valve travel fault / command–position mismatch
+          </option>
+          <option value="warm-water">
+            Valve tracks / entering water too warm
+          </option>
+          <option value="feedback-lost">Valve position feedback stale</option>
           <option value="fan-fault">Fan commanded on / proof lost</option>
           <option value="cascade">Cascading upset / shared chiller trip</option>
           <option value="override">
@@ -161,6 +168,30 @@ const evidence = computed(() =>
             <dt>Supply fan run proof</dt>
             <dd>{{ snapshot.fanProof ? "ON" : "OFF" }}</dd>
           </div>
+          <div>
+            <dt>Valve position feedback</dt>
+            <dd>
+              {{ snapshot.valvePosition ?? "Unavailable"
+              }}{{ snapshot.valvePosition === null ? "" : "%" }} ·
+              {{ snapshot.points.valvePosition.quality }}
+            </dd>
+          </div>
+          <div>
+            <dt>Entering / leaving coil water</dt>
+            <dd>
+              {{
+                snapshot.enteringWater === null
+                  ? "Unavailable"
+                  : units.temperature(snapshot.enteringWater)
+              }}
+              /
+              {{
+                snapshot.leavingWater === null
+                  ? "Unavailable"
+                  : units.temperature(snapshot.leavingWater)
+              }}
+            </dd>
+          </div>
         </dl>
         <div class="mimic-context-absent">
           <strong>What is missing?</strong>
@@ -211,6 +242,15 @@ const evidence = computed(() =>
             <div class="process-device coil">
               <span>Cooling coil</span
               ><strong>Command {{ snapshot.valveCommand }}%</strong>
+              <small
+                >Position
+                {{
+                  snapshot.valvePosition === null
+                    ? "unavailable"
+                    : `${snapshot.valvePosition}%`
+                }}
+                · {{ snapshot.points.valvePosition.quality }}</small
+              >
             </div>
             <div class="process-device fan">
               <span>Supply fan</span
@@ -229,7 +269,11 @@ const evidence = computed(() =>
                 ? "Whole display disconnected; every process value is retained"
                 : snapshot.stale
                   ? "Current temperature unknown; other example signals remain available"
-                  : "Simulated data quality: good"
+                  : Object.values(snapshot.points).some(
+                        (point) => point.quality !== "good",
+                      )
+                    ? "Point quality varies; check individual observations"
+                    : "Simulated data quality: good"
             }}
             · No connection to real equipment
           </p>

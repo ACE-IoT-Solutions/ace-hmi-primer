@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import AnimatedAhu from "./AnimatedAhu.vue";
+import ValveProof from "./ValveProof.vue";
+import WaterDiagnostics from "./WaterDiagnostics.vue";
 import TemperatureTrend from "./TemperatureTrend.vue";
 import { temperatureState, type LabSnapshot } from "../lib/lab";
 import { useTemperatureUnits } from "../lib/units";
@@ -33,7 +35,7 @@ const disconnected = computed(
     <AnimatedAhu :snapshot="snapshot" :paused="paused" contextual>
       <svg class="context-leaders" viewBox="0 0 900 540" aria-hidden="true">
         <path
-          d="M359 147V-40M551 212V-40M764 300V560H735M764 300L230 460V560"
+          d="M359 147V-30H150M391 391L440 370V-30M551 212V-30H745M764 300V560H735M764 300L230 460V560"
         />
         <circle
           v-for="point in [
@@ -52,10 +54,7 @@ const disconnected = computed(
         aria-label="Cooling coil operating context"
       >
         <span class="callout-label">Cooling coil / valve</span>
-        <strong
-          >{{ disconnected ? "Retained command" : "Effective command" }}
-          {{ snapshot.valveCommand }}%</strong
-        >
+        <ValveProof :snapshot="snapshot" />
         <span>Automatic demand {{ snapshot.controlDemand }}%</span>
         <template v-if="snapshot.points.coolingValve.override">
           <strong class="callout-warning"
@@ -68,6 +67,12 @@ const disconnected = computed(
           >
         </template>
         <small v-else>No operator override</small>
+      </section>
+      <section
+        class="equipment-callout water-callout"
+        aria-label="Coil entering and leaving water"
+      >
+        <WaterDiagnostics :snapshot="snapshot" />
       </section>
       <section
         class="equipment-callout fan-callout"
@@ -119,9 +124,21 @@ const disconnected = computed(
         }}{{ disconnected ? " · retained" : "" }}</span
       >
     </AnimatedAhu>
+    <p class="diagnostic-basis">
+      Installed diagnostic sensors in this teaching example; sample ages, travel
+      allowance, tolerance and water supply range are illustrative site
+      settings.
+    </p>
   </div>
 </template>
 <style scoped>
+.diagnostic-basis {
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.8rem;
+  background: #192a38;
+  color: #c2d9e8;
+}
 .equipment-callout {
   position: absolute;
   background: #142b3c;
@@ -147,13 +164,18 @@ const disconnected = computed(
 }
 .valve-callout {
   top: 1rem;
-  left: 20%;
-  width: 35%;
+  left: 1rem;
+  width: 31%;
+}
+.water-callout {
+  top: 1rem;
+  left: 35%;
+  width: 30%;
 }
 .fan-callout {
   top: 1rem;
   right: 1rem;
-  width: 39%;
+  width: 31%;
 }
 .temperature-callout {
   bottom: 1rem;
@@ -187,7 +209,7 @@ const disconnected = computed(
 }
 .context-leaders {
   position: absolute;
-  top: 10rem;
+  top: 17rem;
   left: 0;
   width: 100%;
   height: auto;
@@ -213,7 +235,7 @@ const disconnected = computed(
   padding: 0.4rem;
   border: 1px solid #7ba7bf;
 }
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .equipment-callout {
     position: static;
     width: auto;
@@ -222,6 +244,9 @@ const disconnected = computed(
   }
   .valve-callout {
     order: 0;
+  }
+  .water-callout {
+    order: 1;
   }
   .fan-callout {
     order: 1;

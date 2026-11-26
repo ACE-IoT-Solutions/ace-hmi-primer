@@ -53,3 +53,13 @@ Scenario data lives in `src/data/lab-scenarios.ts`, state helpers in `src/lib/la
 The source edition groups Dashboard under Functional overview and calls the chart family Graph. The style catalog includes those names and Topology rather than treating Dashboard as an additional required style. Example timing, navigation, threshold and touch targets remain recommendations or ACE choices.
 
 Keep new source files below 500 lines. Preserve the original source-material guidance above. Audio is described without playback; units default to °C with a °F option; local timed runs are not quiz records. Independent subject-matter review is still required for formal assessment use.
+
+## Valve travel and water-side diagnostics
+
+`coil-diagnostics.ts` compares effective command with independent position feedback only when both are current and the illustrative travel allowance has elapsed. Values in `lab-scenarios.ts` are fixed teaching snapshots. An accepted valve write changes the effective command and resets its elapsed travel time; it never invents position feedback or water-temperature response.
+
+The `valve-stuck` case has 92% command, 5% reported position, 6 °C entering water and 18 °C leaving water. The `warm-water` contrast has matching 92% position but 18 °C entering water. `feedback-lost` retains a stale position, suppressing any claim of a current mismatch. Water ΔT requires two current temperature observations; unavailable/retained values must not be subtracted as if current. Position agreement and temperature difference do not prove flow. The example deliberately models no water-flow sensor.
+
+`ValveProof.vue` and `WaterDiagnostics.vue` render the same evidence in both contextual views. Keep command source/override, position feedback, sample quality and age distinct. The 120 s allowance, ±10 percentage-point tolerance and 6–8 °C supply range are illustrative site choices, not standard requirements or universal actuator specifications. Validate actual settings and installed feedback mechanisms for a facility. The model does not claim that a position mismatch proves a mechanically stuck valve; it directs investigation to actuator, linkage, valve travel and feedback.
+
+Engineering context: [Belimo Energy Valve operating manual](https://www.belimo.com/mam/americas/technical_documents/Tech%20docs/belimo_ev-4.0-operations_manual_en-us.pdf), troubleshooting discussion, distinguishes valve/actuator, temperature sensing, hydronic availability and flow issues. This is supporting engineering context, not the source of the example's numerical settings.
