@@ -203,7 +203,7 @@ async function deliverResult() {
     const pool = await getPool();
     if (round.ids.some((id) => !pool.some((q) => q.id === id)))
       throw new Error(
-        "This expanded round is saved locally. Result collection needs the updated question bank before retrying.",
+        "Result collection is temporarily unavailable for this round. Your answers are saved locally.",
       );
     const payload = buildResultPayload(
       round,
@@ -315,9 +315,7 @@ function exportResult() {
     save on this browser. Practice scores are not certification.
   </p>
   <p v-if="poolSize < questions.length" class="notice">
-    This round uses the {{ poolSize }}-question core bank while expanded result
-    collection is updated. All {{ questions.length }} questions are included in
-    the learning resource.
+    Practice currently draws from {{ poolSize }} questions.
   </p>
   <p v-if="starting" role="status">Preparing your practice round…</p>
   <p v-if="warning" role="status" class="notice">{{ warning }}</p>

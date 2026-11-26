@@ -100,7 +100,9 @@ test("completed result receives a confirmed receipt and does not resend on reloa
   let posted: any;
   await page.route(endpoint, async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      await route.fulfill({
+        json: { ok: true, questionBankIndependent: true },
+      });
       return;
     }
     calls++;
@@ -132,7 +134,9 @@ test("rejection stays unconfirmed and retry preserves session identity", async (
   const ids: string[] = [];
   await page.route(endpoint, async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      await route.fulfill({
+        json: { ok: true, questionBankIndependent: true },
+      });
       return;
     }
     const data = JSON.parse(
@@ -176,7 +180,9 @@ test("newly enabled remote collection requires new consent and does not submit a
   let calls = 0;
   await page.route(endpoint, async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      await route.fulfill({
+        json: { ok: true, questionBankIndependent: true },
+      });
       return;
     }
     calls++;
@@ -207,7 +213,9 @@ test("changing identity while a submission is pending cannot attach its receipt 
   });
   await page.route(endpoint, async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      await route.fulfill({
+        json: { ok: true, questionBankIndependent: true },
+      });
       return;
     }
     const data = JSON.parse(
@@ -232,67 +240,76 @@ test("changing identity while a submission is pending cannot attach its receipt 
   expect(saved.deliveryStatus).toBeUndefined();
 });
 
-test("an older receiver gets only core questions and core mastery even when this browser knows all sixty", async ({
-  page,
-}) => {
-  const progress = round(false, true);
-  progress.session = null;
-  for (const q of questions)
-    progress.history[q.id] = [
-      {
-        revision: q.revision,
-        choice: q.correctIndex,
-        at: "2026-01-01T00:00:00Z",
+for (const generic of [false, true])
+  test(`${generic ? "a generic receiver accepts full-bank questions and mastery without bank metadata" : "an older receiver gets only core questions and core mastery"}`, async ({
+    page,
+  }) => {
+    const progress = round(false, true);
+    progress.session = null;
+    for (const q of questions)
+      progress.history[q.id] = [
+        {
+          revision: q.revision,
+          choice: q.correctIndex,
+          at: "2026-01-01T00:00:00Z",
+        },
+      ];
+    await page.addInitScript(
+      ({ progress, person, storageKey, participantKey }) => {
+        localStorage.setItem(storageKey, JSON.stringify(progress));
+        localStorage.setItem(participantKey, JSON.stringify(person));
       },
-    ];
-  await page.addInitScript(
-    ({ progress, person, storageKey, participantKey }) => {
-      localStorage.setItem(storageKey, JSON.stringify(progress));
-      localStorage.setItem(participantKey, JSON.stringify(person));
-    },
-    { progress, person, storageKey, participantKey },
-  );
-  let posted: any;
-  await page.route(endpoint, async (route) => {
-    if (route.request().method() === "GET") {
-      await route.fulfill({ json: { ok: true, questionCount: 40 } });
-      return;
-    }
-    posted = JSON.parse(
-      new URLSearchParams(route.request().postData()!).get("payload")!,
+      { progress, person, storageKey, participantKey },
     );
-    await route.fulfill({
-      json: {
-        ok: true,
-        sessionId: posted.sessionId,
-        requestId: "core-receipt",
-      },
+    let posted: any;
+    await page.route(endpoint, async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          json: generic
+            ? { ok: true, questionBankIndependent: true }
+            : { ok: true, questionCount: 40 },
+        });
+        return;
+      }
+      posted = JSON.parse(
+        new URLSearchParams(route.request().postData()!).get("payload")!,
+      );
+      await route.fulfill({
+        json: {
+          ok: true,
+          sessionId: posted.sessionId,
+          requestId: "core-receipt",
+        },
+      });
     });
+    await page.goto("/#quiz");
+    await page
+      .getByRole("button", { name: "Start a 15-question round" })
+      .click();
+    if (!generic)
+      await expect(
+        page.getByText("Practice currently draws from 40 questions.", {
+          exact: false,
+        }),
+      ).toBeVisible();
+    for (let i = 0; i < 15; i++) {
+      await page.getByRole("radio").first().check();
+      await page
+        .getByRole("button", { name: "Check answer", exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name: i === 14 ? "See results" : "Next question",
+          exact: true,
+        })
+        .click();
+    }
+    await expect(page.locator(".quiz-delivery")).toContainText(
+      "Results storage confirmed",
+    );
+    if (!generic)
+      expect(
+        posted.questionIds.every((id: string) => Number(id.slice(4)) <= 40),
+      ).toBe(true);
+    expect(posted.masteredTotal).toBe(generic ? 60 : 40);
   });
-  await page.goto("/#quiz");
-  await page.getByRole("button", { name: "Start a 15-question round" }).click();
-  await expect(
-    page.getByText("This round uses the 40-question core bank", {
-      exact: false,
-    }),
-  ).toBeVisible();
-  for (let i = 0; i < 15; i++) {
-    await page.getByRole("radio").first().check();
-    await page
-      .getByRole("button", { name: "Check answer", exact: true })
-      .click();
-    await page
-      .getByRole("button", {
-        name: i === 14 ? "See results" : "Next question",
-        exact: true,
-      })
-      .click();
-  }
-  await expect(page.locator(".quiz-delivery")).toContainText(
-    "Results storage confirmed",
-  );
-  expect(
-    posted.questionIds.every((id: string) => Number(id.slice(4)) <= 40),
-  ).toBe(true);
-  expect(posted.masteredTotal).toBe(40);
-});

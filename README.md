@@ -14,7 +14,7 @@ npm run dev
 
 Open the URL printed by Vite. The quiz requires an email address and privacy-policy consent before showing questions, matching BACnet Studio and CDL Explorer. Participant details are stored separately from browser-local learning progress. Practice remains usable in memory when storage is blocked; clearing browser data removes saved information.
 
-Completed results can be collected in Google Sheets and optionally added to Pipedrive. The complete [Apps Script integration and setup guide](integrations/google-apps-script/README.md) includes a self-contained `Code.gs` receiver with embedded question-bank metadata and its manifest. Copy `.env.example` to `.env.local` and set `VITE_QUIZ_RESULTS_ENDPOINT` to your deployed `/exec` URL to enable collection; restart Vite or rebuild after changing it. With the variable empty, no result is transmitted.
+Completed results can be collected in Google Sheets and optionally added to Pipedrive. The complete [Apps Script integration and setup guide](integrations/google-apps-script/README.md) includes a self-contained `Code.gs` receiver that accepts app-scored results without a question-bank copy and its manifest. Copy `.env.example` to `.env.local` and set `VITE_QUIZ_RESULTS_ENDPOINT` to your deployed `/exec` URL to enable collection; restart Vite or rebuild after changing it. With the variable empty, no result is transmitted.
 
 **Change email** clears the saved participant and requires consent again. A different email starts a new round; an existing result is never relabeled. Resetting quiz progress retains the saved email. Mastery statistics remain per-browser. Only completed rounds are submitted; entering an email alone does not send a lead or result.
 
@@ -51,17 +51,17 @@ The browser tests need a Playwright Chromium installation (`npx playwright insta
 
 ## Project structure
 
-| Path | Purpose |
-| --- | --- |
-| `src/data/lessons.ts` | Lesson copy, examples, exercises, and clause locators |
-| `src/data/questions.json` | Revisioned question bank |
-| `src/data/glossary.ts` | Plain-language reference terms |
-| `src/lib/quiz.ts` | Selection, scoring helpers, persistence validation |
-| `src/lib/quiz-results.ts` | Participant consent, payload construction, acknowledged delivery |
-| `integrations/google-apps-script/` | Sheets receiver, optional Pipedrive sync, manifest, setup guide |
-| `src/components/DesignLab.vue` | AHU presentation and interaction exercises |
-| `src/vendor/ace/system.css` | ACE visual-system CSS snapshot |
-| `scripts/quiz-review.mjs` | Deterministic HTML/CSV question review generator |
+| Path                               | Purpose                                                          |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `src/data/lessons.ts`              | Lesson copy, examples, exercises, and clause locators            |
+| `src/data/questions.json`          | Revisioned question bank                                         |
+| `src/data/glossary.ts`             | Plain-language reference terms                                   |
+| `src/lib/quiz.ts`                  | Selection, scoring helpers, persistence validation               |
+| `src/lib/quiz-results.ts`          | Participant consent, payload construction, acknowledged delivery |
+| `integrations/google-apps-script/` | Sheets receiver, optional Pipedrive sync, manifest, setup guide  |
+| `src/components/DesignLab.vue`     | AHU presentation and interaction exercises                       |
+| `src/vendor/ace/system.css`        | ACE visual-system CSS snapshot                                   |
+| `scripts/quiz-review.mjs`          | Deterministic HTML/CSV question review generator                 |
 
 ## Design provenance
 
@@ -77,10 +77,12 @@ The deployment follows BACnet Studio's workflow: pushes to the `deploy` branch (
 
 The repository Actions secret `QUIZ_RESULTS_ENDPOINT` supplies the Apps Script `/exec` URL to the build as `VITE_QUIZ_RESULTS_ENDPOINT`. No receiver credentials are stored in the source tree. The published URL is `https://ace-iot-solutions.github.io/ace-hmi-primer/`; quiz navigation is `#quiz`, with relative assets supporting the project subdirectory. Local builds remain browser-local unless explicitly configured.
 
-## Expanded-bank rollout
+## Question updates and collection
 
 The gap-review work in [the implementation plan](docs/isa101-gap-review-plan.md) ships ten lessons and sixty questions, with existing lesson IDs and all original forty questions preserved. Practice rounds remain fifteen questions. New material is original, clause-referenced educational content; independent subject-matter/distractor review remains pending before any formal assessment use.
 
-Replace the deployed Apps Script with the updated self-contained `Code.gs` and deploy a new version to enable all sixty questions for remote-result collection. The frontend reads the receiver health response before starting a connected round. While the existing receiver reports forty questions, connected rounds stay within that compatible core bank, including its mastery count. Browser-local builds use all sixty. This avoids sending expanded IDs to an older receiver that cannot validate them.
+Question content and scoring live in `src/data/questions.json` and the app. Edit questions, update revisions when meaning changes, regenerate review artifacts, run checks, and push to `deploy`. Adding or revising questions does not require an Apps Script update.
+
+**One-time migration:** replace the old bank-coupled `Code.gs` with [receiver version 2026-11-26.1](integrations/google-apps-script/Code.gs), then edit the existing Apps Script deployment and choose **New version → Deploy**. Keep the existing URL and current-spreadsheet manifest. The generic receiver reports `questionBankIndependent: true`; the frontend then uses the full bank automatically. Until that migration, an older receiver's reported capacity preserves compatible core rounds. See the [receiver guide](integrations/google-apps-script/README.md).
 
 Timed detection records use `ace-hmi-usability-runs-v1` in this browser only; they are not included in Google Sheets/Pipedrive submissions. Audible-alarm design is taught in text and exercises without audio playback. Color-view matrices and device contexts are illustrative approximations, not substitutes for tests with representative users and actual hardware.

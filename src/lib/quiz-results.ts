@@ -24,7 +24,7 @@ export function isEndpointConfigured(endpoint = resultsEndpoint): boolean {
     endpoint,
   );
 }
-/** Keep the existing core-bank receiver working during an expanded-bank rollout. */
+/** New receivers accept any bank. Preserve only the one-time legacy migration path. */
 export async function receiverQuestionPool(
   endpoint = resultsEndpoint,
   fetcher: typeof fetch = fetch,
@@ -41,6 +41,12 @@ export async function receiverQuestionPool(
     if (
       response.ok &&
       health?.ok === true &&
+      health.questionBankIndependent === true
+    )
+      return [...questions];
+    if (
+      response.ok &&
+      health?.ok === true &&
       Number.isInteger(health.questionCount) &&
       health.questionCount >= quizLength
     ) {
@@ -53,11 +59,11 @@ export async function receiverQuestionPool(
       if (pool.length >= quizLength) return pool;
     }
   } catch {
-    /* Conservative core-bank fallback preserves compatibility. */
+    /* An unavailable health check must not restrict the repository's practice bank. */
   } finally {
     clearTimeout(timer);
   }
-  return questions.filter((q) => Number(q.id.slice(4)) <= 40);
+  return [...questions];
 }
 export function readParticipant(
   storage: Pick<Storage, "getItem">,

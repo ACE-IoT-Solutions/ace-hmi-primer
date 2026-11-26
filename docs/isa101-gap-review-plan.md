@@ -151,7 +151,7 @@ New lesson IDs are additions; existing IDs stay stable because questions, bookma
 
 - Add about 20 questions: 5 each for `alarms` and `workspace`, plus about 10 across the expanded lessons (display styles, navigation, overrides, off-system messaging, scripting, numeric formatting).
 - Update the 5-per-topic and 40-total assertions in `tests/quiz.test.ts`, and the README and landing-page copy.
-- Run `npm run quiz:review`, `npm run quiz:receiver` and `npm run quiz:review:check`. Redeploy the Apps Script receiver with the frontend release; a deployed receiver rejects mismatched revisions.
+- Run `npm run quiz:review` and `npm run quiz:review:check`, then test and build. The generic results receiver supersedes the original duplicated answer-key design: question changes deploy through GitHub alone after its one-time migration.
 - Revise existing questions only where Phase 0 corrections change their meaning. Increment `revision` when they do.
 
 ### Glossary additions

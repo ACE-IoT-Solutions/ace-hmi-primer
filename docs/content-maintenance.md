@@ -14,14 +14,13 @@ Regenerate and check review artifacts:
 
 ```sh
 npm run quiz:review
-npm run quiz:receiver
 npm test
 npm run quiz:review:check
 ```
 
 The generated `docs/question-review.html` and `docs/question-review.csv` show every option, answer, rationale, clause, and basis. The CSV includes a review-notes column. Keep annotated copies separately; generation replaces both files. Independent reviewers should check that the clause supports the claim, the modal strength is correct, the answer is unambiguous, and the distractors are reasonable.
 
-The tests expect sixty entries across ten lesson topics, with at least five per topic. Update the bank-size assertions and user-facing copy together when expanding the curriculum. Round length is defined in `src/lib/quiz.ts`. When answers or revisions change, regenerate the embedded bank section in `integrations/google-apps-script/Code.gs` with `npm run quiz:receiver` and update the Apps Script version alongside the frontend release. The build checks the generated receiver metadata for drift. A deployed receiver rejects mismatched revisions.
+The tests expect sixty entries across ten lesson topics, with at least five per topic. Update the bank-size assertions and user-facing copy together when expanding the curriculum. Round length is defined in `src/lib/quiz.ts`. Scoring and revision validation belong to the app. After the one-time generic receiver migration, question additions, removals, answer changes, revisions, and round-length changes deploy through GitHub alone. Apps Script validates the submitted record's structure and consistency; it stores revision metadata without needing its own answer key. Only changes to the submission schema, storage, or CRM behavior require a receiver release. See the [receiver guide](../integrations/google-apps-script/README.md).
 
 ## Lessons and glossary
 
@@ -41,7 +40,7 @@ The lab’s process values are fixed teaching data. Preserve explicit labels for
 
 The rising and recovering snapshots deliberately have identical instantaneous temperature, command, and proof values; only the history differs. Preserve that controlled comparison. The lost-proof scenario leaves the command ON and proof OFF. A spinning graphic must not be described as measured movement, and illustrated air must not be described as measured airflow. The stale scenario affects the supply-temperature link; other example signals remain available.
 
-Test scenario switching, context equality, motion pause, reduced-motion preferences, grayscale legibility, invalid input, cancel, and confirmation after changing it. Keep specification examples labeled as original teaching language rather than standard requirements. Lab-only presentation changes do not require quiz revisions. The gap-review expansion adds twenty questions without modifying the original forty; deploy its sixty-question receiver to enable the expanded connected pool.
+Test scenario switching, context equality, motion pause, reduced-motion preferences, grayscale legibility, invalid input, cancel, and confirmation after changing it. Keep specification examples labeled as original teaching language rather than standard requirements. Lab-only presentation changes do not require quiz revisions. The gap-review expansion adds twenty questions without modifying the original forty. The generic receiver supports this and future expansions without question-specific updates.
 
 ## Visual system updates
 

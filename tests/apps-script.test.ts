@@ -7,7 +7,6 @@ import {
   byId,
   emptyProgress,
   nextQuestion,
-  questions,
   startQuiz,
 } from "../src/lib/quiz";
 import {
@@ -161,15 +160,32 @@ function receiver() {
     },
   };
 }
-test("standalone Code.gs embeds all frontend revisions and answers without loading a helper script", () => {
-  const { context } = receiver();
-  const bank = vm.runInContext("HMI_QUIZ_BANK", context);
-  assert.equal(Object.keys(bank).length, questions.length);
-  for (const q of questions)
-    assert.deepEqual(JSON.parse(JSON.stringify(bank[q.id])), {
-      revision: q.revision,
-      correctIndex: q.correctIndex,
+test("unchanged receiver accepts future question IDs, revisions, bank sizes and round lengths", () => {
+  for (const total of [5, 15, 30]) {
+    const app = receiver();
+    app.context.setupQuizResults();
+    const data = payload();
+    data.questionIds = Array.from(
+      { length: total },
+      (_, i) => `future-vav-2030:${i}`,
+    );
+    data.answers = Object.fromEntries(data.questionIds.map((id) => [id, 2]));
+    data.questionRevisions = data.questionIds.map(() => 99);
+    data.bankVersion = 99;
+    data.masteredTotal = 10000;
+    data.total = total;
+    data.score = total - 1;
+    data.percentage = Number(((data.score / total) * 100).toFixed(1));
+    data.incorrectQuestionIds = data.questionIds.slice(-1);
+    const result = app.context.doPost({
+      parameter: { payload: JSON.stringify(data) },
     });
+    assert.equal(result.ok, true, result.error);
+    assert.equal(app.rows[1]![4], total);
+    assert.equal(app.rows[1]![6], 10000);
+    assert.equal(app.rows[1]![9], 99);
+    assert.deepEqual(JSON.parse(String(app.rows[1]![10])), data.questionIds);
+  }
 });
 test("receiver stays scoped to its directly attached spreadsheet", () => {
   const manifest = JSON.parse(
@@ -194,11 +210,13 @@ test("setup and health check use the bound workbook without a spreadsheet ID pro
   const health = app.context.doGet();
   assert.equal(health.ok, true);
   assert.equal(health.storage, "bound_workbook");
-  assert.equal(health.receiverVersion, "2026-11-25.3");
-  assert.equal(health.bankVersion, 1);
-  assert.equal(health.questionCount, questions.length);
+  assert.equal(health.receiverVersion, "2026-11-26.1");
+  assert.equal(health.resultSchemaVersion, 1);
+  assert.equal(health.questionBankIndependent, true);
+  assert.equal(health.questionCount, undefined);
+  assert.equal(health.questionIds, undefined);
 });
-test("standalone receiver accepts a mixed 12/15 practice result using its embedded answers", () => {
+test("standalone receiver accepts a mixed 12/15 practice result with app-calculated scoring", () => {
   const app = receiver();
   app.context.setupQuizResults();
   const data = payload();
@@ -232,7 +250,7 @@ test("receiver writes one consent-bearing row and deduplicates a retried session
   assert.equal(app.locks, 0);
   assert.ok(app.flushes > 0);
 });
-test("receiver rejects foreign app IDs, spam, incomplete or forged scores, and stale revisions before writing", () => {
+test("receiver rejects malformed records, inconsistent scores, spam and invalid consent before writing", () => {
   const app = receiver();
   app.context.setupQuizResults();
   const data = payload();
@@ -242,9 +260,17 @@ test("receiver rejects foreign app IDs, spam, incomplete or forged scores, and s
     {
       score: 14,
       percentage: 93.3,
-      incorrectQuestionIds: [data.questionIds[0]],
+      incorrectQuestionIds: [],
     },
-    { questionRevisions: data.questionRevisions.map(() => 99) },
+    { questionRevisions: data.questionRevisions.map(() => 0) },
+    { total: 0 },
+    { total: 501 },
+    { percentage: 80 },
+    { masteredTotal: -1 },
+    { bankVersion: 0 },
+    { questionIds: data.questionIds.map(() => data.questionIds[0]) },
+    { answers: { ...data.answers, unexpected: 0 } },
+    { questionRevisions: [] },
     { consentAt: "invalid" },
     { questionIds: data.questionIds.slice(1) },
     { answers: { ...data.answers, [data.questionIds[0]!]: 7 } },

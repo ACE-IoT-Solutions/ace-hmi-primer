@@ -5,13 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run quiz:receiver:check && vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "tsx --test tests/*.test.ts",
     "quiz:review": "node scripts/quiz-review.mjs",
-    "quiz:review:check": "node scripts/quiz-review.mjs --check",
-    "quiz:receiver": "node scripts/quiz-receiver-bank.mjs",
-    "quiz:receiver:check": "node scripts/quiz-receiver-bank.mjs --check"
+    "quiz:review:check": "node scripts/quiz-review.mjs --check"
   },
   "dependencies": {
     "vue": "^3.5.0"

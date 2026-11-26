@@ -218,7 +218,7 @@ test("interrupted or unverified delivery is restored as retryable, not successfu
   }
 });
 
-test("receiver compatibility preserves the core bank until expanded collection is deployed", async () => {
+test("generic receivers use the repository bank while legacy deployments remain compatible", async () => {
   const old = await receiverQuestionPool(
     endpoint,
     async () => new Response(JSON.stringify({ ok: true, questionCount: 40 })),
@@ -233,7 +233,19 @@ test("receiver compatibility preserves the core bank until expanded collection i
   const failed = await receiverQuestionPool(endpoint, async () => {
     throw Error("offline");
   });
-  assert.equal(failed.length, 40);
+  assert.equal(failed.length, 60);
+  const generic = await receiverQuestionPool(
+    endpoint,
+    async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          questionBankIndependent: true,
+          questionCount: 1,
+        }),
+      ),
+  );
+  assert.equal(generic.length, 60);
   const local = await receiverQuestionPool("", async () => {
     throw Error("must not send");
   });
