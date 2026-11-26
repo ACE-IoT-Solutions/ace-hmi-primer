@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { temperatureState, type Scenario, type LabSnapshot } from "../lib/lab";
 import AnimatedAhu from "./AnimatedAhu.vue";
+import ContextualAhu from "./ContextualAhu.vue";
 import OperatingContext from "./OperatingContext.vue";
 import GraphicsReview from "./GraphicsReview.vue";
 import { useTemperatureUnits } from "../lib/units";
@@ -9,7 +10,24 @@ const units = useTemperatureUnits();
 const scenario = defineModel<Scenario>("scenario", { required: true });
 const props = defineProps<{ snapshot: LabSnapshot; target: number }>();
 const grayscale = ref(false);
-const showContext = ref(false);
+const view = ref("decorative");
+const views = [
+  {
+    id: "decorative",
+    label: "Decorative 3D",
+    description: "Equipment, animation and isolated readings",
+  },
+  {
+    id: "contextual",
+    label: "3D with operating context",
+    description: "Operating evidence arranged around the equipment",
+  },
+  {
+    id: "task",
+    label: "Task-focused display",
+    description: "The same evidence organized for monitoring and diagnosis",
+  },
+];
 const motion = ref(true);
 const reducedMotion = ref(false);
 let motionPreference: MediaQueryList | undefined;
@@ -41,7 +59,8 @@ const evidence = computed(() =>
       <strong
         >full-color 3D equipment, rotating fans, and animated airflow</strong
       >. This original teaching example supplies those features. Compare it with
-      a display organized around the operator’s question. Both read the same
+      two alternatives: a 3D design with operating evidence and a display
+      organized around the operator’s question. All three read the same
       snapshot.
     </p>
     <p class="muted">
@@ -68,10 +87,6 @@ const evidence = computed(() =>
         </select></label
       >
       <label class="toggle"
-        ><input v-model="showContext" type="checkbox" /> Add operating context
-        to the 3D mimic</label
-      >
-      <label class="toggle"
         ><input v-model="grayscale" type="checkbox" /> View in grayscale</label
       >
       <div class="motion-controls">
@@ -95,11 +110,34 @@ const evidence = computed(() =>
         </p>
       </div>
     </div>
+    <fieldset class="presentation-picker">
+      <legend>Choose a presentation</legend>
+      <label
+        v-for="option in views"
+        :key="option.id"
+        :class="{ selected: view === option.id }"
+      >
+        <input
+          v-model="view"
+          type="radio"
+          name="presentation"
+          :value="option.id"
+        />
+        <span
+          ><strong>{{ option.label }}</strong
+          ><small>{{ option.description }}</small></span
+        >
+      </label>
+    </fieldset>
     <div
       class="comparison-screens"
       :class="{ 'comparison-grayscale': grayscale }"
     >
-      <article class="comparison-card mimic-card" aria-labelledby="mimic-title">
+      <article
+        v-if="view === 'decorative'"
+        class="comparison-card mimic-card"
+        aria-labelledby="mimic-title"
+      >
         <div class="comparison-title">
           <span class="eyebrow">EQUIPMENT MIMIC</span>
           <h3 id="mimic-title">Depth, shine, and movement.</h3>
@@ -124,13 +162,7 @@ const evidence = computed(() =>
             <dd>{{ snapshot.fanProof ? "ON" : "OFF" }}</dd>
           </div>
         </dl>
-        <div v-if="showContext" class="hmi-screen added-context">
-          <p class="context-added-label">
-            Same operating information added to the mimic
-          </p>
-          <OperatingContext :snapshot="snapshot" :target="target" mimic />
-        </div>
-        <div v-else class="mimic-context-absent">
+        <div class="mimic-context-absent">
           <strong>What is missing?</strong>
           <p>
             No target comparison or time history is presented here. The point
@@ -140,6 +172,24 @@ const evidence = computed(() =>
         </div>
       </article>
       <article
+        v-else-if="view === 'contextual'"
+        class="comparison-card contextual-card"
+        aria-labelledby="contextual-title"
+      >
+        <div class="comparison-title">
+          <span class="eyebrow">CONTEXTUAL 3D</span>
+          <h3 id="contextual-title">
+            Operating evidence around the equipment.
+          </h3>
+          <p>
+            Targets, history, quality and equipment status share space with the
+            cutaway.
+          </p>
+        </div>
+        <ContextualAhu :snapshot="snapshot" :target="target" :paused="paused" />
+      </article>
+      <article
+        v-else
         class="comparison-card operating-card"
         aria-labelledby="operating-title"
       >
@@ -187,15 +237,23 @@ const evidence = computed(() =>
       </article>
     </div>
     <div class="comparison-observation">
-      <strong>{{
-        showContext
-          ? "The context improved the mimic. The 3D rendering did not create that context."
-          : "Pause the motion. The temperature, proof, quality, and trend do not change."
-      }}</strong>
-      <p>
-        With context enabled, both displays use the same status, measurements,
-        and trend component. This separates the benefit of useful information
-        from the choice to render equipment in 3D.
+      <strong
+        >With the same operating evidence available, which presentation makes
+        the condition and required action easiest to understand?</strong
+      >
+      <p v-if="view === 'decorative'">
+        Pause the motion. The point readings stay the same, but targets and
+        history are still missing. What evidence would you need before acting?
+      </p>
+      <p v-else-if="view === 'contextual'">
+        The context is useful. Find the temperature deviation, direction of
+        change and fan proof. How do the artwork, callouts and trend share your
+        attention? Does the equipment shape help this task?
+      </p>
+      <p v-else>
+        Compare this view with contextual 3D: both contain the same operating
+        evidence. Judge how quickly you can find, connect and act on it. A
+        quieter layout is useful only if it supports the task.
       </p>
     </div>
   </section>
@@ -203,8 +261,8 @@ const evidence = computed(() =>
     <span class="eyebrow">READ THE PROCESS</span>
     <h2 id="scenario-question">{{ snapshot.question }}</h2>
     <p>
-      Look at the mimic first, then the operating display. Identify the evidence
-      you would use before taking action.
+      Switch between all three presentations. Identify the evidence you would
+      use before taking action, and where you found it.
     </p>
     <details :key="scenario">
       <summary>Reveal the operating evidence</summary>
@@ -226,3 +284,53 @@ const evidence = computed(() =>
   </section>
   <GraphicsReview />
 </template>
+
+<style scoped>
+.presentation-picker {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.presentation-picker legend {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.presentation-picker label {
+  display: flex;
+  align-items: start;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--ace-border-strong);
+  border-radius: var(--ace-radius-lg);
+  cursor: pointer;
+}
+.presentation-picker label.selected {
+  border-color: var(--ace-primary);
+  background: var(--ace-bg-elevated);
+}
+.presentation-picker small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ace-text-muted);
+}
+.comparison-screens {
+  display: block;
+  max-width: 960px;
+  margin-inline: auto;
+}
+.comparison-controls {
+  grid-template-columns: minmax(220px, 1.25fr) 0.8fr 1.1fr;
+}
+.comparison-title {
+  min-height: 0;
+}
+@media (max-width: 600px) {
+  .presentation-picker,
+  .comparison-controls {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

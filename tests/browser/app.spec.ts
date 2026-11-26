@@ -1,3 +1,4 @@
+import { labScenarios } from "../../src/data/lab-scenarios";
 import { test, expect } from "@playwright/test";
 
 test("lesson navigation, completion, glossary search, and history work", async ({
@@ -31,6 +32,9 @@ test("lab distinguishes stale state and separates accepted target from actual te
   page,
 }) => {
   await page.goto("/#lab");
+  await page
+    .getByRole("radio", { name: "Task-focused display", exact: false })
+    .check();
   await expect(page.locator(".screen-status")).toContainText(
     "Supply temperature high",
   );
@@ -69,16 +73,11 @@ test("lab distinguishes stale state and separates accepted target from actual te
     page.getByRole("heading", { name: "Can I trust this observation?" }),
   ).toBeVisible();
 });
-test("decorative motion adds no process evidence; shared context distinguishes identical readings", async ({
+test("three presentations preserve data and motion state while placing context around the equipment", async ({
   page,
 }) => {
   await page.goto("/#lab");
-  const mimic = page.locator(".mimic-card"),
-    operating = page.locator(".operating-card");
-  const readings = await mimic.locator(".mimic-readings").innerText();
-  const beforeTrend = await operating
-    .getByRole("img", { name: /Supply temperature trend/ })
-    .getAttribute("aria-label");
+  const readings = await page.locator(".mimic-readings").innerText();
   await page
     .getByRole("button", { name: "Pause decorative animation" })
     .click();
@@ -86,40 +85,57 @@ test("decorative motion adds no process evidence; shared context distinguishes i
     "animation-play-state",
     "paused",
   );
-  await expect(mimic.locator(".mimic-readings")).toHaveText(
-    readings.replace(/\n/g, " "),
-    { useInnerText: true },
+  expect(await page.locator(".mimic-readings").innerText()).toBe(readings);
+  await page
+    .getByRole("radio", { name: "3D with operating context", exact: false })
+    .check();
+  await expect(page.locator(".contextual-card .operating-context")).toHaveCount(
+    0,
   );
-  expect(
-    await operating
-      .getByRole("img", { name: /Supply temperature trend/ })
-      .getAttribute("aria-label"),
-  ).toBe(beforeTrend);
+  await expect(page.locator(".ahu-canvas .equipment-callout")).toHaveCount(4);
+  await expect(page.locator(".fan-rotor")).toHaveCSS(
+    "animation-play-state",
+    "paused",
+  );
+  const rising = await page
+    .getByRole("img", { name: /Supply temperature trend/ })
+    .getAttribute("aria-label");
   await page.getByLabel("Process scenario").selectOption("recovering");
-  expect(await mimic.locator(".mimic-readings").innerText()).toBe(readings);
-  expect(
-    await operating
-      .getByRole("img", { name: /Supply temperature trend/ })
-      .getAttribute("aria-label"),
-  ).not.toBe(beforeTrend);
-  await page.getByLabel("Add operating context to the 3D mimic").check();
-  expect(await mimic.locator(".operating-context").innerText()).toBe(
-    await operating.locator(".operating-context").innerText(),
+  const recovering = await page
+    .getByRole("img", { name: /Supply temperature trend/ })
+    .getAttribute("aria-label");
+  expect(recovering).not.toBe(rising);
+  await expect(page.locator(".temperature-callout")).toContainText("24.4 °C");
+  await page
+    .getByRole("radio", { name: "Task-focused display", exact: false })
+    .check();
+  await expect(
+    page.getByRole("img", { name: /Supply temperature trend/ }),
+  ).toHaveAttribute("aria-label", recovering!);
+  await expect(page.locator(".measurement")).toContainText("24.4");
+  await page.getByLabel("Process scenario").selectOption("fan-fault");
+  await expect(page.locator(".screen-status")).toContainText(
+    "Fan command / proof mismatch",
+  );
+  await page
+    .getByRole("radio", { name: "3D with operating context", exact: false })
+    .check();
+  await expect(page.locator(".fan-callout")).toContainText(
+    "Command ON / Proof OFF",
+  );
+  await expect(page.locator(".fan-callout")).toContainText(
+    "Fan command / proof mismatch",
   );
   await page.getByRole("button", { name: "Play decorative animation" }).click();
   await expect(page.locator(".fan-rotor")).toHaveCSS(
     "animation-play-state",
     "running",
   );
-  await page.getByLabel("Process scenario").selectOption("fan-fault");
-  await expect(operating.locator(".screen-status")).toContainText(
-    "Fan command / proof mismatch",
-  );
-  await expect(mimic.locator(".mimic-readings")).toContainText("OFF");
-  await expect(page.locator(".fan-rotor")).toHaveCSS(
-    "animation-play-state",
-    "running",
-  );
+  await page
+    .getByRole("radio", { name: "Decorative 3D", exact: false })
+    .check();
+  await expect(page.locator(".mimic-readings")).toContainText("OFF");
+  await expect(page.locator(".trend-panel")).toHaveCount(0);
   await page
     .getByText("Reveal the operating evidence", { exact: true })
     .click();
@@ -127,29 +143,85 @@ test("decorative motion adds no process evidence; shared context distinguishes i
     "keeps spinning when proof is lost",
   );
 });
-test("comparison respects reduced motion and stays usable on narrow screens with context shown", async ({
+test("contextual 3D stays usable in grayscale, reduced motion and narrow viewports", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/#lab");
+  await page
+    .getByRole("radio", { name: "3D with operating context", exact: false })
+    .check();
   await expect(
     page.getByRole("button", { name: "Play decorative animation" }),
   ).toBeDisabled();
   await expect(page.locator(".fan-rotor")).toHaveCSS("animation-name", "none");
-  await page.getByLabel("Add operating context to the 3D mimic").check();
+  await page.getByLabel("View in grayscale").check();
   await page.getByLabel("Process scenario").selectOption("stale");
-  await expect(page.locator(".mimic-card .operating-context")).toContainText(
+  await expect(page.locator(".temperature-callout")).toContainText(
     "Current temperature unknown",
   );
-  await expect(
-    page.locator(".operating-card .operating-context"),
-  ).toContainText("Current temperature unknown");
+  await expect(page.locator(".missing-data-region")).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Temperature units", exact: true })
+    .selectOption("F");
+  await expect(page.locator(".temperature-callout")).toContainText("65.3 °F");
+  const contextualTrend = await page
+    .getByRole("img", { name: /Supply temperature trend/ })
+    .getAttribute("aria-label");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page
+    .getByRole("radio", { name: "Task-focused display", exact: false })
+    .check();
+  await expect(page.locator(".operating-context")).toContainText(
+    "Current temperature unknown",
+  );
+  await expect(
+    page.getByRole("img", { name: /Supply temperature trend/ }),
+  ).toHaveAttribute("aria-label", contextualTrend!);
+});
+test("contextual 3D and task-focused views preserve operating evidence across every scenario", async ({
+  page,
+}) => {
+  await page.goto("/#lab");
+  for (const [id, snapshot] of Object.entries(labScenarios)) {
+    await page.getByLabel("Process scenario").selectOption(id);
+    await page
+      .getByRole("radio", { name: "3D with operating context", exact: false })
+      .check();
+    const trend = await page
+      .getByRole("img", { name: /Supply temperature trend/ })
+      .getAttribute("aria-label");
+    await expect(page.locator(".temperature-callout")).toContainText(
+      `${snapshot.actual.toFixed(1)} °C`,
+    );
+    await expect(page.locator(".valve-callout")).toContainText(
+      `${snapshot.valveCommand}%`,
+    );
+    await expect(page.locator(".fan-callout")).toContainText(
+      `Command ${snapshot.fanCommand ? "ON" : "OFF"} / Proof ${snapshot.fanProof ? "ON" : "OFF"}`,
+    );
+    const alarms = await page.locator(".snapshot-alarms").allTextContents();
+    await page
+      .getByRole("radio", { name: "Task-focused display", exact: false })
+      .check();
+    await expect(
+      page.getByRole("img", { name: /Supply temperature trend/ }),
+    ).toHaveAttribute("aria-label", trend!);
+    await expect(page.locator(".measurement")).toContainText(
+      snapshot.actual.toFixed(1),
+    );
+    await expect(page.locator(".operating-signals")).toContainText(
+      `${snapshot.valveCommand}%`,
+    );
+    expect(await page.locator(".snapshot-alarms").allTextContents()).toEqual(
+      alarms,
+    );
+  }
 });
 test("quiz answer locks, survives reload and lesson review, completes and exports", async ({
   page,

@@ -10,6 +10,9 @@ test("phase 0: stale history leaves a visible gap through now and unit changes s
 }) => {
   await page.goto("/#lab");
   await page.getByLabel("Process scenario").selectOption("stale");
+  await page
+    .getByRole("radio", { name: "Task-focused display", exact: false })
+    .check();
   const chart = page.locator(".operating-card .trend-panel");
   await expect(chart.locator(".missing-data-region")).toBeVisible();
   await expect(chart.locator("circle")).toHaveAttribute("cx", "306");
@@ -56,12 +59,17 @@ test("S1: acknowledge stops alarm border motion but preserves the active conditi
     "Filter maintenance due",
   );
 });
-test("S2–S3: both displays expose overrides, and delayed rejection never updates the target", async ({
+test("S2–S3: all presentations expose overrides, and delayed rejection never updates the target", async ({
   page,
 }) => {
   await page.goto("/#lab");
   await page.getByLabel("Process scenario").selectOption("override");
-  for (const selector of [".mimic-card", ".operating-card"]) {
+  for (const [view, selector] of [
+    ["Decorative 3D", ".mimic-card"],
+    ["3D with operating context", ".contextual-card"],
+    ["Task-focused display", ".operating-card"],
+  ]) {
+    await page.getByRole("radio", { name: view, exact: false }).check();
     await expect(page.locator(selector)).toContainText("Priority 8");
     await expect(page.locator(selector)).toContainText(
       "Effective valve command 0%",
@@ -96,6 +104,9 @@ test("S2–S3: both displays expose overrides, and delayed rejection never updat
   await page
     .getByRole("combobox", { name: "Lab exercise", exact: true })
     .selectOption("comparison");
+  await page
+    .getByRole("radio", { name: "Task-focused display", exact: false })
+    .check();
   await expect(
     page.locator(".operating-card .operating-signals"),
   ).toContainText("40%");
@@ -108,13 +119,17 @@ test("S4–S5: whole-display failure remains obvious while motion continues; not
   await expect(page.locator(".mimic-card .display-failure")).toContainText(
     "All process values retained",
   );
-  await expect(page.locator(".operating-card .display-failure")).toContainText(
-    "current process state unknown",
-  );
+
   await expect(page.locator(".fan-rotor")).toHaveCSS(
     "animation-play-state",
     "running",
   );
+  for (const view of ["3D with operating context", "Task-focused display"]) {
+    await page.getByRole("radio", { name: view, exact: false }).check();
+    await expect(
+      page.locator(".comparison-card .display-failure"),
+    ).toContainText("current process state unknown");
+  }
   await page
     .getByRole("combobox", { name: "Lab exercise", exact: true })
     .selectOption("connection");

@@ -36,7 +36,7 @@ The primer teaches the standard; it does not reproduce it or replace the need to
 
 ## Design lab
 
-The lab’s process values are fixed teaching data. Preserve explicit labels for simulated data, stale observations, illustrative ranges, and controller acceptance. Do not imply that an entered or accepted command establishes physical process response. The comparison uses one `labScenarios` snapshot for both presentations. `AnimatedAhu.vue` renders the original 3D-style SVG artwork; its rotation and moving air intentionally follow the fan command. `OperatingContext.vue` supplies the same operating information to the task-focused display and to the mimic when context is enabled. Keep the physical data unchanged when pausing animation or changing presentation.
+The lab’s process values are fixed teaching data. Preserve explicit labels for simulated data, stale observations, illustrative ranges, and controller acceptance. Do not imply that an entered or accepted command establishes physical process response. The comparison uses one `labScenarios` snapshot for all three presentations. `AnimatedAhu.vue` renders the original 3D-style SVG artwork; its rotation and moving air intentionally follow the fan command. `ContextualAhu.vue` places operating callouts inside the 3D equipment canvas; `OperatingContext.vue` groups the same evidence in the task-focused display. Both use `TemperatureTrend.vue` for identical history, target and stale gaps. Keep the contextual 3D layout a credible design attempt: judge task support without manufacturing clutter. Narrow screens reflow callouts into reading order. Keep the physical data unchanged when pausing animation or changing presentation.
 
 The rising and recovering snapshots deliberately have identical instantaneous temperature, command, and proof values; only the history differs. Preserve that controlled comparison. The lost-proof scenario leaves the command ON and proof OFF. A spinning graphic must not be described as measured movement, and illustrated air must not be described as measured airflow. The stale scenario affects the supply-temperature link; other example signals remain available.
 
@@ -48,7 +48,7 @@ Refresh the vendored CSS from `../ace-visual-system/src/styles/system.css` inten
 
 ## Expanded scenarios and local evidence
 
-Scenario data lives in `src/data/lab-scenarios.ts`, state helpers in `src/lib/lab.ts`, and contracts in `src/lib/lab-types.ts`. Keep both displays on the same snapshot, including alarm acknowledgement, override metadata, point quality and whole-display connection state. Acknowledgement never clears an active condition. Write lifecycle stages distinguish intent, pending, acceptance and rejection; a rejected request cannot update the accepted target.
+Scenario data lives in `src/data/lab-scenarios.ts`, state helpers in `src/lib/lab.ts`, and contracts in `src/lib/lab-types.ts`. Keep all presentations on the same snapshot, including alarm acknowledgement, override metadata, point quality and whole-display connection state. Acknowledgement never clears an active condition. Write lifecycle stages distinguish intent, pending, acceptance and rejection; a rejected request cannot update the accepted target.
 
 The source edition groups Dashboard under Functional overview and calls the chart family Graph. The style catalog includes those names and Topology rather than treating Dashboard as an additional required style. Example timing, navigation, threshold and touch targets remain recommendations or ACE choices.
 
