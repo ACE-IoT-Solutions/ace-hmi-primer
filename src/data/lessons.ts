@@ -1,3 +1,4 @@
+import { lessonAdditions, newLessons } from "./lesson-expansion";
 export const standardTitle = "ANSI/ISA-101.01-2015";
 export const standardUrl =
   "https://www.isa.org/standards-and-publications/isa-standards/isa-101-standards";
@@ -7,6 +8,8 @@ export interface Lesson {
   title: string;
   summary: string;
   sections: { title: string; text: string }[];
+  additionalSections?: { title: string; text: string }[];
+  cards?: { title: string; items: string[]; clause: string; basis: string }[];
   example: string;
   exercise: string;
   takeaway: string;
@@ -14,7 +17,7 @@ export interface Lesson {
   basis: string;
 }
 
-export const lessons: Lesson[] = [
+const baseLessons: Lesson[] = [
   {
     id: "purpose",
     title: "Start with the operator",
@@ -244,4 +247,16 @@ export const lessons: Lesson[] = [
     basis:
       "Clause 9 includes mandatory requirements; usability exercises are ACE examples.",
   },
+];
+
+export const lessons: Lesson[] = [
+  ...baseLessons.map((lesson) => {
+    const addition = lessonAdditions[lesson.id] ?? {};
+    return {
+      ...lesson,
+      ...addition,
+      sections: [...lesson.sections, ...(addition.additionalSections ?? [])],
+    };
+  }),
+  ...newLessons,
 ];

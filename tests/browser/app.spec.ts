@@ -32,19 +32,21 @@ test("lab distinguishes stale state and separates accepted target from actual te
 }) => {
   await page.goto("/#lab");
   await expect(page.locator(".screen-status")).toContainText(
-    "SUPPLY TEMPERATURE HIGH",
+    "Supply temperature high",
   );
   await page.getByLabel("Process scenario").selectOption("stale");
   await expect(page.locator(".screen-status")).toContainText(
     "Current temperature unknown",
   );
   await page.getByLabel("View in grayscale").check();
-  await expect(page.locator(".screen-status")).toContainText("STALE DATA");
+  await expect(page.locator(".screen-status")).toContainText("Stale data");
   await page.getByLabel("Requested supply temperature").fill("30");
   await page
     .getByRole("button", { name: "Review change", exact: true })
     .click();
-  await expect(page.locator(".error-text")).toContainText("12 and 20");
+  await expect(page.locator(".error-text")).toContainText(
+    "12.0 °C and 20.0 °C",
+  );
   await page.getByLabel("Requested supply temperature").fill("18");
   await page
     .getByRole("button", { name: "Review change", exact: true })
@@ -111,7 +113,7 @@ test("decorative motion adds no process evidence; shared context distinguishes i
   );
   await page.getByLabel("Process scenario").selectOption("fan-fault");
   await expect(operating.locator(".screen-status")).toContainText(
-    "FAN COMMAND / PROOF MISMATCH",
+    "Fan command / proof mismatch",
   );
   await expect(mimic.locator(".mimic-readings")).toContainText("OFF");
   await expect(page.locator(".fan-rotor")).toHaveCSS(

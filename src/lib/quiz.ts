@@ -68,12 +68,16 @@ function shuffle<T>(values: T[], random: () => number): T[] {
   }
   return result;
 }
-export function selectQuestions(p: Progress, random = Math.random): string[] {
-  const unseen = questions.filter((q) => !currentAttempts(p, q).length);
-  const missed = questions.filter(
+export function selectQuestions(
+  p: Progress,
+  random = Math.random,
+  pool: readonly Question[] = questions,
+): string[] {
+  const unseen = pool.filter((q) => !currentAttempts(p, q).length);
+  const missed = pool.filter(
     (q) => currentAttempts(p, q).length && !latestCorrect(p, q),
   );
-  const correct = questions.filter((q) => latestCorrect(p, q));
+  const correct = pool.filter((q) => latestCorrect(p, q));
   return [
     ...shuffle(unseen, random),
     ...shuffle(missed, random),
@@ -82,9 +86,13 @@ export function selectQuestions(p: Progress, random = Math.random): string[] {
     .slice(0, quizLength)
     .map((q) => q.id);
 }
-export function startQuiz(p: Progress, random = Math.random): Progress {
+export function startQuiz(
+  p: Progress,
+  random = Math.random,
+  pool: readonly Question[] = questions,
+): Progress {
   if (p.session && p.session.index < p.session.ids.length) return p;
-  const ids = selectQuestions(p, random);
+  const ids = selectQuestions(p, random, pool);
   return {
     ...p,
     session: {

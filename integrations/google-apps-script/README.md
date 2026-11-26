@@ -7,7 +7,7 @@ The receiver stores each unique session in a Google Sheet, including the email, 
 ## 1. Install the receiver
 
 1. Open the Google Sheet that should hold the results, then choose **Extensions → Apps Script**.
-2. Replace the editor’s `Code.gs` with the complete [Code.gs](Code.gs). It includes the answer/revision lookup for all 40 questions and every receiver helper; no additional script file is needed.
+2. Replace the editor’s `Code.gs` with the complete [Code.gs](Code.gs). It includes the answer/revision lookup for all 60 questions and every receiver helper; no additional script file is needed.
 3. If you installed an earlier separate `QuestionBank.gs` file, delete it from the Apps Script project so the bank constants are not declared twice.
 4. In **Project Settings**, enable **Show appsscript.json manifest file in editor**. Replace that manifest with [appsscript.json](appsscript.json).
 5. Save all files. Select `setupQuizResults` in the function menu and run it from the editor. Authorize the requested permissions.
@@ -43,9 +43,9 @@ Without these properties, Sheet storage still works and the Pipedrive Status col
   "ok": true,
   "service": "ACE HMI Primer quiz results",
   "storage": "bound_workbook",
-  "receiverVersion": "2026-11-25.2",
+  "receiverVersion": "2026-11-25.3",
   "bankVersion": 1,
-  "questionCount": 40
+  "questionCount": 60
 }
 ```
 
@@ -104,4 +104,10 @@ The generator updates the marked question-bank section inside `Code.gs`, preserv
 
 Run `diagnoseQuizResults` from the editor for a read-only report of the bound workbook URL, tab name, and row count. It writes no records and contacts no CRM. If the destination is correct but public health is outdated, check that the frontend URL points to the deployment you updated. If the bound workbook is unavailable, open Apps Script directly from the destination Sheet and run `setupQuizResults`. The receiver reports an error rather than trying another workbook or requesting broader spreadsheet access.
 
-Automated tests use mocked Sheets, CRM, and HTTP services. No live deployment, result, or contact is created by those tests. Before relying on production collection, verify the public health response, complete one authorized test round from the deployed frontend, and check the Sheet and (if enabled) Pipedrive. A live test round reached the previous receiver but was rejected before storage because its separate question-bank file was missing. The receiver is now self-contained; replace `Code.gs` and redeploy it, then verify the health response includes receiver version `2026-11-25.2` and `questionCount: 40`. The saved test session can then be retried. Updating GitHub or Pages alone does not update an Apps Script deployment.
+Automated tests use mocked Sheets, CRM, and HTTP services. No live deployment, result, or contact is created by those tests. Before relying on production collection, verify the public health response, complete one authorized test round from the deployed frontend, and check the Sheet and (if enabled) Pipedrive. A live test round reached the previous receiver but was rejected before storage because its separate question-bank file was missing. The receiver is now self-contained; replace `Code.gs` and redeploy it, then verify the health response includes receiver version `2026-11-25.3` and `questionCount: 60`. The saved test session can then be retried. Updating GitHub or Pages alone does not update an Apps Script deployment.
+
+## Compatible expansion from forty to sixty questions
+
+The frontend checks this receiver’s health response when preparing connected practice. Older forty-question deployments remain usable for core-bank rounds; they do not receive new question IDs or a mastery count above forty. After this sixty-question `Code.gs` is redeployed, a new browser visit uses the full bank automatically. The health response includes `questionCount` and `questionIds`. Existing question IDs and revisions are retained, so old completed rounds remain valid.
+
+To update: replace `Code.gs`, keep the existing current-spreadsheet manifest, choose **New version → Deploy** for the existing deployment, and verify `receiverVersion: 2026-11-25.3` with sixty questions. No deployment credential or new endpoint URL is needed when retaining the deployment.

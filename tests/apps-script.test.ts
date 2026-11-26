@@ -194,7 +194,7 @@ test("setup and health check use the bound workbook without a spreadsheet ID pro
   const health = app.context.doGet();
   assert.equal(health.ok, true);
   assert.equal(health.storage, "bound_workbook");
-  assert.equal(health.receiverVersion, "2026-11-25.2");
+  assert.equal(health.receiverVersion, "2026-11-25.3");
   assert.equal(health.bankVersion, 1);
   assert.equal(health.questionCount, questions.length);
 });

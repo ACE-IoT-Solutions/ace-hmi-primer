@@ -3,7 +3,7 @@ export default defineConfig({
   testDir: "./tests/browser",
   use: { baseURL: "http://127.0.0.1:5175" },
   projects: [
-    { name: "local", testMatch: "app.spec.ts" },
+    { name: "local", testMatch: ["app.spec.ts", "gap-review.spec.ts"] },
     {
       name: "receiver",
       testMatch: "quiz-delivery.spec.ts",

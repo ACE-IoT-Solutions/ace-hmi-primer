@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useId } from "vue";
+import { useTemperatureUnits } from "../lib/units";
+import ProcessIntegrity from "./ProcessIntegrity.vue";
+const units = useTemperatureUnits();
 import type { LabSnapshot } from "../lib/lab";
 defineProps<{ snapshot: LabSnapshot; paused: boolean }>();
 const id = useId().replace(/[^a-zA-Z0-9-]/g, "");
@@ -7,8 +10,9 @@ const paint = (name: string) => `url(#${id}-${name})`;
 </script>
 <template>
   <div class="animated-ahu" :class="{ 'motion-paused': paused }">
+    <ProcessIntegrity :snapshot="snapshot" />
     <div class="mimic-caption">
-      <span>AHU-01 · EQUIPMENT GRAPHIC</span><span>3D / ANIMATED</span>
+      <span>AHU-01 · Equipment graphic</span><span>3D / ANIMATED</span>
     </div>
     <svg
       viewBox="0 0 900 540"
@@ -257,13 +261,15 @@ const paint = (name: string) => `url(#${id}-${name})`;
       <g class="art-tag">
         <path d="M109 198V120H44" />
         <rect x="20" y="73" width="177" height="54" rx="5" />
-        <text x="33" y="94">RETURN AIR</text>
-        <text x="33" y="115" class="art-value">23.0 °C</text>
+        <text x="33" y="94">Return air</text>
+        <text x="33" y="115" class="art-value">
+          {{ units.temperature(23) }}
+        </text>
       </g>
       <g class="art-tag">
         <path d="M360 108V70" />
         <rect x="253" y="24" width="207" height="56" rx="5" />
-        <text x="268" y="46">COOLING VALVE COMMAND</text>
+        <text x="268" y="46">Cooling valve command</text>
         <text x="268" y="68" class="art-value">
           {{ snapshot.valveCommand }}%
         </text>
@@ -271,7 +277,7 @@ const paint = (name: string) => `url(#${id}-${name})`;
       <g class="art-tag">
         <path d="M551 208V112H629" />
         <rect x="541" y="66" width="219" height="58" rx="5" />
-        <text x="557" y="88">SUPPLY FAN COMMAND</text>
+        <text x="557" y="88">Supply fan command</text>
         <text x="557" y="112" class="art-value">
           {{ snapshot.fanCommand ? "ON" : "OFF" }}
         </text>
@@ -279,15 +285,15 @@ const paint = (name: string) => `url(#${id}-${name})`;
       <g class="art-tag">
         <path d="M764 345V407" />
         <rect x="674" y="403" width="207" height="65" rx="5" />
-        <text x="689" y="426">SUPPLY TEMPERATURE</text>
+        <text x="689" y="426">Supply temperature</text>
         <text x="689" y="452" class="art-value">
-          {{ snapshot.actual.toFixed(1) }} °C
+          {{ units.temperature(snapshot.actual) }}
         </text>
       </g>
       <g class="art-tag">
         <path d="M551 347V420H461" />
         <rect x="319" y="407" width="231" height="59" rx="5" />
-        <text x="334" y="430">SUPPLY FAN RUN PROOF</text>
+        <text x="334" y="430">Supply fan run proof</text>
         <text x="334" y="455" class="art-value">
           {{ snapshot.fanProof ? "ON" : "OFF" }}
         </text>

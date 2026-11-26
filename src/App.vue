@@ -3,6 +3,9 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import DesignLab from "./components/DesignLab.vue";
 import QuizPage from "./components/QuizPage.vue";
 import { lessons, standardTitle, standardUrl } from "./data/lessons";
+import LessonCards from "./components/LessonCards.vue";
+import { checklist } from "./data/review-checklist";
+import { questions } from "./lib/quiz";
 import { glossary } from "./data/glossary";
 import aceMark from "./assets/brand/ace-mark.svg";
 
@@ -28,58 +31,7 @@ const filteredGlossary = computed(() =>
 const completed = ref<string[]>([]);
 const storageWarning = ref("");
 const checks = ref<string[]>([]);
-const checklist = [
-  {
-    title: "Tasks and users",
-    text: "Primary users and representative normal, startup, shutdown, and abnormal tasks are documented. Secondary-user needs do not obstruct primary operation.",
-    clause: "4.3.3",
-  },
-  {
-    title: "System standards",
-    text: "Philosophy, style-guide rules, and toolkit components are identified. Exceptions have a rationale and owner.",
-    clause: "4.1–4.2.3",
-  },
-  {
-    title: "Display purpose",
-    text: "Every display has a clear scope. Overview, routine operation, detail, and diagnostics are organized around tasks.",
-    clause: "6.3",
-  },
-  {
-    title: "Attention and readability",
-    text: "Important conditions have redundant cues. Text, contrast, and input targets work at real viewing distances and ambient lighting. Normal motion does not compete with alarms.",
-    clause: "5.2; 7.3",
-  },
-  {
-    title: "Information context",
-    text: "Values have meaningful labels, units, precision, and context. Relevant trends expose direction. Stale or uncertain data is visibly distinguished in the applied design.",
-    clause: "5.1.4; 6.2; 7.2.1.2 + ACE practice",
-  },
-  {
-    title: "Control interactions",
-    text: "Entry limits and errors are understandable. Important actions receive appropriate confirmation. Accepted commands and physical feedback are distinguishable.",
-    clause: "7.2.1; 7.2.3; 8.3.4",
-  },
-  {
-    title: "Performance",
-    text: "Call-up, ongoing refresh, write, and feedback targets are agreed and tested against actual process and task needs.",
-    clause: "8.3",
-  },
-  {
-    title: "Testing with users",
-    text: "Representative operators perform scripted tasks. Expected evidence, acceptance criteria, deficiencies, and retest results are recorded.",
-    clause: "4.4.3; 4.6.3",
-  },
-  {
-    title: "Training and recovery",
-    text: "Role-specific training and documentation are current. Backups and restoration procedures have been tested.",
-    clause: "4.4.4; 4.5.2; 9.1",
-  },
-  {
-    title: "Change control",
-    text: "The change owner, affected displays, approvals, training impacts, and follow-up verification are captured in the facility’s change process.",
-    clause: "4.5.1; 4.6.1",
-  },
-];
+
 function syncHash() {
   const [target, id] = window.location.hash.slice(1).split("/");
   page.value = nav.some((n) => n.id === target) ? (target as Page) : "learn";
@@ -177,7 +129,8 @@ onUnmounted(() => window.removeEventListener("hashchange", syncHash));
             ><a class="button" href="#lab">Open the design lab</a>
           </div>
           <p class="hero-meta">
-            8 lessons · Interactive AHU lab · 40 practice questions
+            {{ lessons.length }} lessons · 12 lab exercises ·
+            {{ questions.length }} practice questions
           </p>
         </div>
         <div
@@ -258,6 +211,7 @@ onUnmounted(() => window.removeEventListener("hashchange", syncHash));
             <h3>{{ section.title }}</h3>
             <p>{{ section.text }}</p>
           </section>
+          <LessonCards v-if="lesson.cards" :cards="lesson.cards" />
           <div class="lesson-note">
             <span class="eyebrow">IN A BUILDING</span>
             <p>{{ lesson.example }}</p>

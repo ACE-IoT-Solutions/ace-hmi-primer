@@ -17,10 +17,11 @@ import {
   selectQuestions,
   startQuiz,
 } from "../src/lib/quiz";
-import { labScenarios, temperatureState, validateTarget } from "../src/lib/lab";
+import { temperatureState, validateTarget } from "../src/lib/lab";
+import { labScenarios } from "../src/data/lab-scenarios";
 
 test("question bank has unique IDs, complete original entries, source clauses, and lesson coverage", () => {
-  assert.equal(questions.length, 40);
+  assert.equal(questions.length, 60);
   assert.equal(new Set(questions.map((q) => q.id)).size, questions.length);
   for (const q of questions) {
     assert.match(q.id, /^HMI-\d{3}$/);
@@ -38,8 +39,9 @@ test("question bank has unique IDs, complete original entries, source clauses, a
     );
     assert.ok(lessons.some((l) => l.id === q.topic));
   }
+  assert.equal(lessons.length, 10);
   for (const lesson of lessons)
-    assert.equal(questions.filter((q) => q.topic === lesson.id).length, 5);
+    assert.ok(questions.filter((q) => q.topic === lesson.id).length >= 5);
 });
 test("selection produces a unique 15-question round without mutating the bank", () => {
   const before = questions.map((q) => q.id);
@@ -167,13 +169,13 @@ test("complete rounds can start a fresh round while retaining attempt history", 
   assert.deepEqual(next.history, p.history);
 });
 test("stale data never implies a known current process condition", () => {
-  assert.equal(temperatureState(16, 16, true).label, "STALE DATA");
-  assert.equal(temperatureState(24, 16, true).label, "STALE DATA");
+  assert.equal(temperatureState(16, 16, true).label, "Stale data");
+  assert.equal(temperatureState(24, 16, true).label, "Stale data");
   assert.equal(
     temperatureState(24, 16, false).label,
-    "SUPPLY TEMPERATURE HIGH",
+    "Supply temperature high",
   );
-  assert.equal(temperatureState(12, 16, false).label, "SUPPLY TEMPERATURE LOW");
+  assert.equal(temperatureState(12, 16, false).label, "Supply temperature low");
   assert.equal(temperatureState(16, 16, false).attention, false);
 });
 test("rising and recovering snapshots have identical instantaneous signals and opposite histories", () => {
@@ -204,7 +206,7 @@ test("fan proof loss is separate from commanded operation; temperature-link loss
   assert.equal(
     temperatureState(labScenarios.stale.actual, 16, labScenarios.stale.stale)
       .label,
-    "STALE DATA",
+    "Stale data",
   );
 });
 test("illustrative command limits reject blank, nonfinite, out-of-range and excess-precision entries", () => {

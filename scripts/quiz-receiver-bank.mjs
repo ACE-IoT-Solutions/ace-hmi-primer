@@ -29,7 +29,13 @@ if (
   throw new Error(
     "Code.gs must contain exactly one generated question-bank section.",
   );
-const block = `${startMarker}\n// Generated from src/data/questions.json by npm run quiz:receiver.\n// Embedded so Code.gs is the only script file needed by the receiver.\nconst HMI_QUIZ_BANK_VERSION = ${Math.max(...questions.map((q) => q.revision))};\nconst HMI_QUIZ_BANK = Object.freeze(${JSON.stringify(bank, null, 2)});\n${endMarker}`;
+const block = `${startMarker}\n// Generated from src/data/questions.json by npm run quiz:receiver.\n// Embedded so Code.gs is the only script file needed by the receiver.\nconst HMI_QUIZ_BANK_VERSION = ${Math.max(...questions.map((q) => q.revision))};\nconst HMI_QUIZ_BANK = Object.freeze(${
+  "{\n" +
+  Object.entries(bank)
+    .map(([id, q]) => `  ${JSON.stringify(id)}: ${JSON.stringify(q)}`)
+    .join(",\n") +
+  "\n}"
+});\n${endMarker}`;
 const content =
   source.slice(0, start) + block + source.slice(end + endMarker.length);
 if (process.argv.includes("--check")) {

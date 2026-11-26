@@ -6,6 +6,7 @@ import {
   nextQuestion,
   startQuiz,
   storageKey,
+  questions,
 } from "../../src/lib/quiz";
 import {
   bindParticipant,
@@ -98,6 +99,10 @@ test("completed result receives a confirmed receipt and does not resend on reloa
   let calls = 0;
   let posted: any;
   await page.route(endpoint, async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      return;
+    }
     calls++;
     posted = JSON.parse(
       new URLSearchParams(route.request().postData()!).get("payload")!,
@@ -126,6 +131,10 @@ test("rejection stays unconfirmed and retry preserves session identity", async (
   await seed(page);
   const ids: string[] = [];
   await page.route(endpoint, async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      return;
+    }
     const data = JSON.parse(
       new URLSearchParams(route.request().postData()!).get("payload")!,
     );
@@ -166,6 +175,10 @@ test("newly enabled remote collection requires new consent and does not submit a
   await seed(page, true, false);
   let calls = 0;
   await page.route(endpoint, async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      return;
+    }
     calls++;
     await route.abort();
   });
@@ -193,6 +206,10 @@ test("changing identity while a submission is pending cannot attach its receipt 
     release = resolve;
   });
   await page.route(endpoint, async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { ok: true, questionCount: 60 } });
+      return;
+    }
     const data = JSON.parse(
       new URLSearchParams(route.request().postData()!).get("payload")!,
     );
@@ -213,4 +230,69 @@ test("changing identity while a submission is pending cannot attach its receipt 
   );
   expect(saved.participantEmail).toBe("second@example.com");
   expect(saved.deliveryStatus).toBeUndefined();
+});
+
+test("an older receiver gets only core questions and core mastery even when this browser knows all sixty", async ({
+  page,
+}) => {
+  const progress = round(false, true);
+  progress.session = null;
+  for (const q of questions)
+    progress.history[q.id] = [
+      {
+        revision: q.revision,
+        choice: q.correctIndex,
+        at: "2026-01-01T00:00:00Z",
+      },
+    ];
+  await page.addInitScript(
+    ({ progress, person, storageKey, participantKey }) => {
+      localStorage.setItem(storageKey, JSON.stringify(progress));
+      localStorage.setItem(participantKey, JSON.stringify(person));
+    },
+    { progress, person, storageKey, participantKey },
+  );
+  let posted: any;
+  await page.route(endpoint, async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { ok: true, questionCount: 40 } });
+      return;
+    }
+    posted = JSON.parse(
+      new URLSearchParams(route.request().postData()!).get("payload")!,
+    );
+    await route.fulfill({
+      json: {
+        ok: true,
+        sessionId: posted.sessionId,
+        requestId: "core-receipt",
+      },
+    });
+  });
+  await page.goto("/#quiz");
+  await page.getByRole("button", { name: "Start a 15-question round" }).click();
+  await expect(
+    page.getByText("This round uses the 40-question core bank", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  for (let i = 0; i < 15; i++) {
+    await page.getByRole("radio").first().check();
+    await page
+      .getByRole("button", { name: "Check answer", exact: true })
+      .click();
+    await page
+      .getByRole("button", {
+        name: i === 14 ? "See results" : "Next question",
+        exact: true,
+      })
+      .click();
+  }
+  await expect(page.locator(".quiz-delivery")).toContainText(
+    "Results storage confirmed",
+  );
+  expect(
+    posted.questionIds.every((id: string) => Number(id.slice(4)) <= 40),
+  ).toBe(true);
+  expect(posted.masteredTotal).toBe(40);
 });

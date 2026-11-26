@@ -678,5 +678,345 @@
     "explanation": "In-service changes are handled through Management of Change, with affected lifecycle activities considered.",
     "clause": "4.5.1–4.6.1",
     "basis": "Mandatory change-control requirement with applied follow-up"
+  },
+  {
+    "id": "HMI-041",
+    "revision": 1,
+    "topic": "alarms",
+    "difficulty": "applied",
+    "prompt": "What distinguishes an alarm from an alert?",
+    "options": [
+      "An alarm always uses sound and an alert never does",
+      "An alarm requires operator response; an alert calls for awareness separately from alarms",
+      "An alert is simply a low-priority alarm",
+      "The distinction is determined only by display color"
+    ],
+    "correctIndex": 1,
+    "explanation": "Alarm and alert differ in purpose and criteria, not simply volume, color or priority. They should be indicated separately.",
+    "clause": "3.1.1–3.1.2",
+    "basis": "Standard definition"
+  },
+  {
+    "id": "HMI-042",
+    "revision": 1,
+    "topic": "alarms",
+    "difficulty": "applied",
+    "prompt": "A chiller trip, warm AHU supply air and a zone comfort alarm occur together. What should the overview help the operator do?",
+    "options": [
+      "Acknowledge the newest alarm first regardless of priority",
+      "Hide downstream alarms until the trip clears",
+      "Prioritize the upset and understand functional propagation",
+      "Respond to whichever equipment symbol is largest"
+    ],
+    "correctIndex": 2,
+    "explanation": "The design must consider prioritization of major or simultaneous upsets. Functional relationships help connect an upstream condition with downstream symptoms.",
+    "clause": "5.1(c); 6.3.1",
+    "basis": "Mandatory design consideration and standard guidance"
+  },
+  {
+    "id": "HMI-043",
+    "revision": 1,
+    "topic": "alarms",
+    "difficulty": "applied",
+    "prompt": "An operator acknowledges an alarm whose abnormal process condition is still active. What should remain apparent?",
+    "options": [
+      "The active abnormal condition and its acknowledged state",
+      "Only the last alarm timestamp",
+      "A normal equipment state until a new alarm arrives",
+      "No indication, because acknowledgement resolves the condition"
+    ],
+    "correctIndex": 0,
+    "explanation": "Acknowledgement records recognition, not process recovery. The active state should remain visible after an attention-getting indication is stopped.",
+    "clause": "5.2.1.5; 6.3.1",
+    "basis": "Applied design judgment"
+  },
+  {
+    "id": "HMI-044",
+    "revision": 1,
+    "topic": "alarms",
+    "difficulty": "applied",
+    "prompt": "Which is the best approach to alarm colors and priority cues?",
+    "options": [
+      "Reuse alarm colors for normal pipe decorations to make them familiar",
+      "Give every alarm the same visual and audible code",
+      "Rely on sound alone so the display stays quiet",
+      "Reserve alarm colors and use clear redundant priority indications"
+    ],
+    "correctIndex": 3,
+    "explanation": "Reserved alarm meanings and redundant visual or audible coding help maintain salience and accommodate the operating environment and users.",
+    "clause": "5.2.1.2; 5.2.2.3",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-045",
+    "revision": 1,
+    "topic": "alarms",
+    "difficulty": "applied",
+    "prompt": "Which alarm presentation best matches the Level 2 guidance?",
+    "options": [
+      "Only the single highest-priority alarm in the whole facility",
+      "Top and middle priorities for the system, with navigation cues for lower priorities",
+      "Every diagnostic event from every system on one page",
+      "No alarm information because Level 2 is only for control"
+    ],
+    "correctIndex": 1,
+    "explanation": "Level 2 should support operating tasks with top and middle priority alarms and clear navigation cues for low-priority alarms not displayed there.",
+    "clause": "6.3.2",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-046",
+    "revision": 1,
+    "topic": "hierarchy",
+    "difficulty": "applied",
+    "prompt": "What should drive selection of a display style?",
+    "options": [
+      "The functional requirements of the display and the task",
+      "The number of styles the vendor library contains",
+      "A requirement to render all equipment in 3D",
+      "A fixed rule that every display must be a dashboard"
+    ],
+    "correctIndex": 0,
+    "explanation": "The standard recommends selecting the presentation style from the display function and user needs rather than an aesthetic template.",
+    "clause": "6.1–6.2; Table 6",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-047",
+    "revision": 1,
+    "topic": "hierarchy",
+    "difficulty": "applied",
+    "prompt": "Which navigation approach most directly follows dependencies between a central plant and its consumers?",
+    "options": [
+      "A strictly alphabetical menu",
+      "A mandatory four-click path",
+      "Relational navigation",
+      "A sequence that forbids returning to an earlier display"
+    ],
+    "correctIndex": 2,
+    "explanation": "Relational navigation follows functional or process relationships. It can complement an area hierarchy in utility systems.",
+    "clause": "7.2.2.2",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-048",
+    "revision": 1,
+    "topic": "hierarchy",
+    "difficulty": "applied",
+    "prompt": "What is yoking in HMI navigation?",
+    "options": [
+      "Synchronizing all operator passwords",
+      "Opening only the top-level overview",
+      "Combining all control commands into one action",
+      "Calling up related displays or contents through one navigation action"
+    ],
+    "correctIndex": 3,
+    "explanation": "Yoking brings a defined related combination into view from one selection. It is a navigation technique, not a process-control command.",
+    "clause": "3.1.46; 7.2.2.4",
+    "basis": "Standard definition"
+  },
+  {
+    "id": "HMI-049",
+    "revision": 1,
+    "topic": "interaction",
+    "difficulty": "applied",
+    "prompt": "A multi-equipment command requires several selections. What should the final confirmation show?",
+    "options": [
+      "Only the word Confirm",
+      "The complete affected list of actions before execution",
+      "Only the last item selected",
+      "The total number of available controllers, without their identities"
+    ],
+    "correctIndex": 1,
+    "explanation": "Confirmation of the complete action list lets the operator review the effects of all selections before the process command executes.",
+    "clause": "7.2.1.4(c)",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-050",
+    "revision": 1,
+    "topic": "interaction",
+    "difficulty": "applied",
+    "prompt": "A cooling loop requests 92%, but an operator override holds the effective output at 0%. Which information matters most?",
+    "options": [
+      "Only the automatic demand because the override is temporary",
+      "Only a normal cooling animation",
+      "Automatic demand, effective value, and override source and age",
+      "A running fan symbol as proof that the valve followed the loop"
+    ],
+    "correctIndex": 2,
+    "explanation": "A forced or higher-priority value can separate demand from effective output. The applied display should expose that state and its operational context.",
+    "clause": "9.1.1(c, k); 7.2.1.4(a)",
+    "basis": "ACE applied practice"
+  },
+  {
+    "id": "HMI-051",
+    "revision": 1,
+    "topic": "interaction",
+    "difficulty": "applied",
+    "prompt": "When may a recorded reason help with an unusual numeric entry?",
+    "options": [
+      "When an approved policy permits an entry beyond an expected range while critical acceptable limits remain enforced",
+      "Whenever the operator wants to bypass a hard safety limit",
+      "Only when no other error feedback is shown",
+      "When the reason text itself grants the user command authority"
+    ],
+    "correctIndex": 0,
+    "explanation": "Expected-range exceptions can be supported by a reason under defined policy. That does not override critical bounds or role authorization.",
+    "clause": "7.2.1.4(g); 7.2.3; 7.2.5",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-052",
+    "revision": 1,
+    "topic": "context",
+    "difficulty": "applied",
+    "prompt": "A temperature history ends 12 minutes before the current time. How should a current-time chart handle that interval?",
+    "options": [
+      "Stretch the last observed point to now",
+      "Repeat the last value as new measurements",
+      "Remove all time labels",
+      "Leave the missing interval visible and identify the retained observation"
+    ],
+    "correctIndex": 3,
+    "explanation": "Showing the missing interval helps prevent a historical value from appearing current. Data-quality context is distinct from drawing a continuous line.",
+    "clause": "5.1(d); 5.1.4",
+    "basis": "ACE applied practice"
+  },
+  {
+    "id": "HMI-053",
+    "revision": 1,
+    "topic": "context",
+    "difficulty": "applied",
+    "prompt": "Which fractional numeric presentation best follows the guidance?",
+    "options": [
+      ".5 with the units omitted",
+      "0.5 with meaningful units or context available",
+      "0.500000000 regardless of sensor accuracy",
+      "A decimal point that changes position with each refresh"
+    ],
+    "correctIndex": 1,
+    "explanation": "A leading zero is recommended for magnitudes below one. Precision and placement should support reading and the actual measurement task.",
+    "clause": "7.2.1.2; Table 7",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-054",
+    "revision": 1,
+    "topic": "lifecycle",
+    "difficulty": "applied",
+    "prompt": "What should govern control or procedural logic implemented with HMI scripting?",
+    "options": [
+      "Whether the graphic looks complete",
+      "A blanket assumption that all HMI logic is prohibited",
+      "Availability requirements, failure handling and supported maintenance methods",
+      "Whether an animation is active when the page opens"
+    ],
+    "correctIndex": 2,
+    "explanation": "The standard discusses the reliability of HMI computers and controllers and calls for a suitable component and implementation that meet availability and maintenance needs.",
+    "clause": "4.2.2.1.1",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-055",
+    "revision": 1,
+    "topic": "performance",
+    "difficulty": "applied",
+    "prompt": "What distinguishes HMI duty factors from performance-shaping factors?",
+    "options": [
+      "Duty factors concern system response; shaping factors affect human detection, diagnosis and action",
+      "Both mean only display refresh rate",
+      "Shaping factors are solely network latency",
+      "Duty factors measure only training time"
+    ],
+    "correctIndex": 0,
+    "explanation": "The standard separates display/system-response measures from factors influencing the operator’s ability to detect, diagnose and act. Both matter to overall performance.",
+    "clause": "8.1",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-056",
+    "revision": 1,
+    "topic": "workspace",
+    "difficulty": "applied",
+    "prompt": "How should the user-type examples in clause 4.1.1 be applied?",
+    "options": [
+      "Create exactly seven mandatory account roles on every system",
+      "Give every listed user the same commands",
+      "Exclude maintenance and analysts from requirements work",
+      "Identify actual user needs and appropriate access; the list is illustrative"
+    ],
+    "correctIndex": 3,
+    "explanation": "Operations, maintenance, engineering, administration, management, analysts and others are examples. Role needs should be identified in the actual facility context.",
+    "clause": "4.1.1; 7.2.5",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-057",
+    "revision": 1,
+    "topic": "workspace",
+    "difficulty": "applied",
+    "prompt": "Which task-analysis method is particularly concerned with the links between tasks and navigation?",
+    "options": [
+      "Sensor calibration",
+      "Link analysis",
+      "Color histogram analysis",
+      "Controller point scanning"
+    ],
+    "correctIndex": 1,
+    "explanation": "Link analysis examines connections and their frequency and can help streamline tasks and display navigation.",
+    "clause": "4.3.3",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-058",
+    "revision": 1,
+    "topic": "workspace",
+    "difficulty": "applied",
+    "prompt": "What is the best way to establish whether a wall overview is readable?",
+    "options": [
+      "Reuse a desktop screenshot at any size",
+      "Count the number of pixels without considering distance",
+      "Test the intended information at actual viewing positions and lighting with representative users",
+      "Assume that a larger monitor guarantees legibility"
+    ],
+    "correctIndex": 2,
+    "explanation": "The workspace, visual limitations, display position, size, ambient conditions and intended tasks affect readability. Device size alone is insufficient evidence.",
+    "clause": "5.2.1.1–5.2.1.3; 7.3",
+    "basis": "Applied design judgment"
+  },
+  {
+    "id": "HMI-059",
+    "revision": 1,
+    "topic": "workspace",
+    "difficulty": "applied",
+    "prompt": "An off-system alarm route sends to SMS but its service fails. What should the design consider?",
+    "options": [
+      "Availability monitoring and backup arrangements appropriate to the requirements",
+      "Treating a queued message as proof of operator response",
+      "Silently relying on the primary route forever",
+      "Removing the on-screen alarm because messaging was requested"
+    ],
+    "correctIndex": 0,
+    "explanation": "Off-system messaging should be robust and monitored for availability, with backup where required by criticality. Dispatch alone does not establish receipt or response.",
+    "clause": "7.2.4",
+    "basis": "Standard guidance"
+  },
+  {
+    "id": "HMI-060",
+    "revision": 1,
+    "topic": "workspace",
+    "difficulty": "applied",
+    "prompt": "Why are self-timed display trials insufficient to prove universal superiority of a graphic style?",
+    "options": [
+      "Timing can never be useful in usability work",
+      "Only colors affect operator response",
+      "A single fast trial is sufficient for all facilities",
+      "User familiarity, task, information content, order and device conditions can affect the result"
+    ],
+    "correctIndex": 3,
+    "explanation": "Task trials can provide evidence when the protocol and conditions are defined. A self-timed demonstration with uncontrolled factors does not establish a universal causal claim.",
+    "clause": "4.4.3; 8.1(b)",
+    "basis": "Applied design judgment"
   }
 ]

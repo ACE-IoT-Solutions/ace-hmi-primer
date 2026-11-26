@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 import { lessons, standardTitle } from "../data/lessons";
+import { downloadQuizResult } from "../lib/quiz-export";
 import QuizParticipantForm from "./QuizParticipantForm.vue";
 import {
   bindParticipant,
@@ -8,6 +9,7 @@ import {
   isEndpointConfigured,
   participantKey,
   readParticipant,
+  receiverQuestionPool,
   saveParticipant,
   submitResult,
   type Participant,
@@ -110,16 +112,32 @@ const topic = (id: string) => lessons.find((l) => l.id === id)?.title ?? id;
 function focusQuestion() {
   nextTick(() => document.getElementById("question-title")?.focus());
 }
-function start() {
-  if (!participant.value) return;
-  const next = startQuiz(progress.value);
-  progress.value = {
-    ...next,
-    session: bindParticipant(next.session!, participant.value),
-  };
-  choice.value = null;
-  focusQuestion();
+const starting = ref(false);
+const poolSize = ref(questions.length);
+let poolPromise: ReturnType<typeof receiverQuestionPool> | undefined;
+function getPool() {
+  return (poolPromise ??= receiverQuestionPool());
 }
+async function start() {
+  if (!participant.value || starting.value) return;
+  const email = participant.value.email;
+  starting.value = true;
+  try {
+    const pool = await getPool();
+    poolSize.value = pool.length;
+    if (!participant.value || participant.value.email !== email) return;
+    const next = startQuiz(progress.value, Math.random, pool);
+    progress.value = {
+      ...next,
+      session: bindParticipant(next.session!, participant.value),
+    };
+    choice.value = null;
+    focusQuestion();
+  } finally {
+    starting.value = false;
+  }
+}
+
 function registerParticipant(person: Participant) {
   participant.value = person;
   previousEmail.value = person.email;
@@ -182,10 +200,15 @@ async function deliverResult() {
     },
   };
   try {
+    const pool = await getPool();
+    if (round.ids.some((id) => !pool.some((q) => q.id === id)))
+      throw new Error(
+        "This expanded round is saved locally. Result collection needs the updated question bank before retrying.",
+      );
     const payload = buildResultPayload(
       round,
       person,
-      masteredCount.value,
+      pool.filter((q) => mastered(progress.value, q)).length,
       window.location.href,
     );
     const delivery = await submitResult(payload);
@@ -258,37 +281,8 @@ function reset() {
   }
 }
 function exportResult() {
-  if (!session.value || !completed.value) return;
-  const result = {
-    title: "ACE HMI Primer practice result",
-    standard: standardTitle,
-    exportedAt: new Date().toISOString(),
-    score: score.value,
-    total: quizLength,
-    sessionId: session.value.sessionId,
-    startedAt: session.value.startedAt,
-    completedAt: session.value.completedAt,
-    questions: session.value.ids.map((id) => {
-      const q = byId.get(id)!;
-      return {
-        id,
-        revision: q.revision,
-        prompt: q.prompt,
-        selectedAnswer: q.options[session.value!.answers[id]!],
-        correctAnswer: q.options[q.correctIndex],
-        explanation: q.explanation,
-        clause: q.clause,
-      };
-    }),
-  };
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "hmi-practice-result.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (session.value && completed.value)
+    downloadQuizResult(session.value, score.value);
 }
 </script>
 
@@ -297,8 +291,8 @@ function exportResult() {
     <span class="eyebrow">PRACTICE / ISA-101</span>
     <h1>Put good design into practice.</h1>
     <p>
-      Fifteen questions per round, from a bank of forty. Every answer includes
-      an explanation and a source clause.
+      Fifteen questions per round, from a bank of {{ questions.length }}. Every
+      answer includes an explanation and a source clause.
     </p>
   </section>
   <div class="stats-row">
@@ -320,6 +314,12 @@ function exportResult() {
     A missed review answer returns to practice. Answers and your current round
     save on this browser. Practice scores are not certification.
   </p>
+  <p v-if="poolSize < questions.length" class="notice">
+    This round uses the {{ poolSize }}-question core bank while expanded result
+    collection is updated. All {{ questions.length }} questions are included in
+    the learning resource.
+  </p>
+  <p v-if="starting" role="status">Preparing your practice round…</p>
   <p v-if="warning" role="status" class="notice">{{ warning }}</p>
   <div v-if="participant" class="participant-summary">
     <span
@@ -337,7 +337,9 @@ function exportResult() {
       Practice the lifecycle, display hierarchy, visual design, information
       context, interaction, performance, and validation.
     </p>
-    <button class="primary" @click="start">Start a 15-question round</button>
+    <button class="primary" :disabled="starting" @click="start">
+      Start a 15-question round
+    </button>
   </section>
   <section
     v-else-if="question"
@@ -444,7 +446,8 @@ function exportResult() {
       </button>
     </div>
     <div class="actions">
-      <button class="primary" @click="start">Start another round</button
+      <button class="primary" :disabled="starting" @click="start">
+        Start another round</button
       ><button @click="exportResult">Download result</button>
     </div>
     <h3>Review this round</h3>

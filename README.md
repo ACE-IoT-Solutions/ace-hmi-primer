@@ -20,11 +20,11 @@ Completed results can be collected in Google Sheets and optionally added to Pipe
 
 ## Learning resources
 
-- Eight lessons: operator tasks, lifecycle and system standards, display hierarchy, visual emphasis, information context, interaction, performance, and validation/training.
-- AHU design lab: side-by-side animated 3D equipment mimic and task-focused operating display; normal, rising, recovering, lost fan proof, and stale-temperature scenarios; pause motion without changing data; add identical operating context to the mimic; grayscale comparison; scenario evidence review; graphics-specification critique and task-based specification example; four-level hierarchy explorer; validated and confirmed simulated target changes.
-- Searchable glossary with 26 terms and source locators.
-- Forty original practice questions, five per lesson, with explanations, source clauses, and explicit basis labels. Rounds contain 15 distinct questions.
-- Results review, JSON result download, and a printable project review checklist.
+- Ten lessons covering operator tasks, lifecycle and system standards, structure/navigation, visual emphasis, information context, interaction, performance, validation/training, alarms, and workspace/devices/access.
+- Twelve building-focused lab exercises: controlled 3D comparison, cascading alarms, overrides, delayed/rejected writes, whole-display failure, notification outages, formatting/faceplates, batch commands, display-style selection, navigation/yoking, viewing context, timed tasks and lifecycle review. Exercises share a unit toggle (°C by default, °F available); the exceptional-entry clinic explicitly states its °C ranges.
+- Searchable glossary with 44 terms and source locators.
+- Sixty original practice questions, at least five per lesson, with explanations, source clauses, and explicit basis labels. Rounds contain 15 distinct questions.
+- Results review, JSON result download, and a printable 16-topic project review checklist.
 
 The quiz prioritizes never-attempted questions, then questions whose latest answer was incorrect, then prior correct answers. It reports latest-answer accuracy separately from questions answered correctly at least once. Current rounds and answers survive reloads. Revision changes invalidate old attempts for that question and discard affected saved rounds.
 
@@ -76,3 +76,11 @@ The [reference-project review](docs/reference-project-review.md) explains which 
 The deployment follows BACnet Studio's workflow: pushes to the `deploy` branch (or manual runs of `Deploy to GitHub Pages`) run the tests, check question review files, build the static app, and deploy `dist/` through the `github-pages` environment. Pages uses **GitHub Actions** as its publishing source.
 
 The repository Actions secret `QUIZ_RESULTS_ENDPOINT` supplies the Apps Script `/exec` URL to the build as `VITE_QUIZ_RESULTS_ENDPOINT`. No receiver credentials are stored in the source tree. The published URL is `https://ace-iot-solutions.github.io/ace-hmi-primer/`; quiz navigation is `#quiz`, with relative assets supporting the project subdirectory. Local builds remain browser-local unless explicitly configured.
+
+## Expanded-bank rollout
+
+The gap-review work in [the implementation plan](docs/isa101-gap-review-plan.md) ships ten lessons and sixty questions, with existing lesson IDs and all original forty questions preserved. Practice rounds remain fifteen questions. New material is original, clause-referenced educational content; independent subject-matter/distractor review remains pending before any formal assessment use.
+
+Replace the deployed Apps Script with the updated self-contained `Code.gs` and deploy a new version to enable all sixty questions for remote-result collection. The frontend reads the receiver health response before starting a connected round. While the existing receiver reports forty questions, connected rounds stay within that compatible core bank, including its mastery count. Browser-local builds use all sixty. This avoids sending expanded IDs to an older receiver that cannot validate them.
+
+Timed detection records use `ace-hmi-usability-runs-v1` in this browser only; they are not included in Google Sheets/Pipedrive submissions. Audible-alarm design is taught in text and exercises without audio playback. Color-view matrices and device contexts are illustrative approximations, not substitutes for tests with representative users and actual hardware.

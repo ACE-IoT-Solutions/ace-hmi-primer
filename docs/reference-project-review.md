@@ -32,6 +32,8 @@ The AHU scenario translates concepts into the audience’s building-automation c
 
 ## Review status and follow-on work
 
-The initial bank has five questions per lesson and a mix of foundations and applied judgment. Automated checks cover structure and behavior; they do not establish editorial correctness. Use the generated HTML/CSV to perform an independent clause and distractor review before treating the quiz as a formal assessment.
+The original bank had five questions per lesson. The gap-review expansion adds twenty questions for sixty total, with at least five for each of ten lesson topics. Automated checks cover structure and behavior; they do not establish editorial correctness. Use the generated HTML/CSV to perform an independent clause and distractor review before treating the quiz as a formal assessment.
 
 Potential later extensions include more demanding multi-signal diagnosis scenarios, controlled style-guide templates, task-based usability scorecards, and optional learning-record delivery. Email/consent and optional Sheets/Pipedrive collection have been added. Badges, live equipment connections, and a dedicated advanced bank remain outside the current implementation.
+
+The gap-review implementation now includes alarm/override state, display styles, relational navigation, local timed tasks, viewing context and lifecycle tabletop exercises. See `docs/isa101-gap-review-plan.md` and the README rollout notes for receiver compatibility.

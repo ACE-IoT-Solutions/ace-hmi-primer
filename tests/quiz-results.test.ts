@@ -19,6 +19,7 @@ import {
   readParticipant,
   saveParticipant,
   submitResult,
+  receiverQuestionPool,
   type Participant,
 } from "../src/lib/quiz-results";
 const person: Participant = {
@@ -215,4 +216,26 @@ test("interrupted or unverified delivery is restored as retryable, not successfu
     );
     assert.equal(restored.session!.deliveryStatus, "failed");
   }
+});
+
+test("receiver compatibility preserves the core bank until expanded collection is deployed", async () => {
+  const old = await receiverQuestionPool(
+    endpoint,
+    async () => new Response(JSON.stringify({ ok: true, questionCount: 40 })),
+  );
+  assert.equal(old.length, 40);
+  assert.ok(old.every((q) => Number(q.id.slice(4)) <= 40));
+  const expanded = await receiverQuestionPool(
+    endpoint,
+    async () => new Response(JSON.stringify({ ok: true, questionCount: 60 })),
+  );
+  assert.equal(expanded.length, 60);
+  const failed = await receiverQuestionPool(endpoint, async () => {
+    throw Error("offline");
+  });
+  assert.equal(failed.length, 40);
+  const local = await receiverQuestionPool("", async () => {
+    throw Error("must not send");
+  });
+  assert.equal(local.length, 60);
 });

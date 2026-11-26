@@ -8,170 +8,70 @@
 // Embedded so Code.gs is the only script file needed by the receiver.
 const HMI_QUIZ_BANK_VERSION = 1;
 const HMI_QUIZ_BANK = Object.freeze({
-  "HMI-001": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-002": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-003": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-004": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-005": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-006": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-007": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-008": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-009": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-010": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-011": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-012": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-013": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-014": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-015": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-016": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-017": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-018": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-019": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-020": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-021": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-022": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-023": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-024": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-025": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-026": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-027": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-028": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-029": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-030": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-031": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-032": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-033": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-034": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-035": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-036": {
-    "revision": 1,
-    "correctIndex": 2
-  },
-  "HMI-037": {
-    "revision": 1,
-    "correctIndex": 1
-  },
-  "HMI-038": {
-    "revision": 1,
-    "correctIndex": 3
-  },
-  "HMI-039": {
-    "revision": 1,
-    "correctIndex": 0
-  },
-  "HMI-040": {
-    "revision": 1,
-    "correctIndex": 2
-  }
+  "HMI-001": {"revision":1,"correctIndex":1},
+  "HMI-002": {"revision":1,"correctIndex":3},
+  "HMI-003": {"revision":1,"correctIndex":0},
+  "HMI-004": {"revision":1,"correctIndex":2},
+  "HMI-005": {"revision":1,"correctIndex":1},
+  "HMI-006": {"revision":1,"correctIndex":3},
+  "HMI-007": {"revision":1,"correctIndex":0},
+  "HMI-008": {"revision":1,"correctIndex":2},
+  "HMI-009": {"revision":1,"correctIndex":1},
+  "HMI-010": {"revision":1,"correctIndex":3},
+  "HMI-011": {"revision":1,"correctIndex":0},
+  "HMI-012": {"revision":1,"correctIndex":2},
+  "HMI-013": {"revision":1,"correctIndex":1},
+  "HMI-014": {"revision":1,"correctIndex":3},
+  "HMI-015": {"revision":1,"correctIndex":0},
+  "HMI-016": {"revision":1,"correctIndex":2},
+  "HMI-017": {"revision":1,"correctIndex":1},
+  "HMI-018": {"revision":1,"correctIndex":3},
+  "HMI-019": {"revision":1,"correctIndex":0},
+  "HMI-020": {"revision":1,"correctIndex":2},
+  "HMI-021": {"revision":1,"correctIndex":1},
+  "HMI-022": {"revision":1,"correctIndex":3},
+  "HMI-023": {"revision":1,"correctIndex":0},
+  "HMI-024": {"revision":1,"correctIndex":2},
+  "HMI-025": {"revision":1,"correctIndex":1},
+  "HMI-026": {"revision":1,"correctIndex":3},
+  "HMI-027": {"revision":1,"correctIndex":0},
+  "HMI-028": {"revision":1,"correctIndex":2},
+  "HMI-029": {"revision":1,"correctIndex":1},
+  "HMI-030": {"revision":1,"correctIndex":3},
+  "HMI-031": {"revision":1,"correctIndex":0},
+  "HMI-032": {"revision":1,"correctIndex":2},
+  "HMI-033": {"revision":1,"correctIndex":1},
+  "HMI-034": {"revision":1,"correctIndex":3},
+  "HMI-035": {"revision":1,"correctIndex":0},
+  "HMI-036": {"revision":1,"correctIndex":2},
+  "HMI-037": {"revision":1,"correctIndex":1},
+  "HMI-038": {"revision":1,"correctIndex":3},
+  "HMI-039": {"revision":1,"correctIndex":0},
+  "HMI-040": {"revision":1,"correctIndex":2},
+  "HMI-041": {"revision":1,"correctIndex":1},
+  "HMI-042": {"revision":1,"correctIndex":2},
+  "HMI-043": {"revision":1,"correctIndex":0},
+  "HMI-044": {"revision":1,"correctIndex":3},
+  "HMI-045": {"revision":1,"correctIndex":1},
+  "HMI-046": {"revision":1,"correctIndex":0},
+  "HMI-047": {"revision":1,"correctIndex":2},
+  "HMI-048": {"revision":1,"correctIndex":3},
+  "HMI-049": {"revision":1,"correctIndex":1},
+  "HMI-050": {"revision":1,"correctIndex":2},
+  "HMI-051": {"revision":1,"correctIndex":0},
+  "HMI-052": {"revision":1,"correctIndex":3},
+  "HMI-053": {"revision":1,"correctIndex":1},
+  "HMI-054": {"revision":1,"correctIndex":2},
+  "HMI-055": {"revision":1,"correctIndex":0},
+  "HMI-056": {"revision":1,"correctIndex":3},
+  "HMI-057": {"revision":1,"correctIndex":1},
+  "HMI-058": {"revision":1,"correctIndex":2},
+  "HMI-059": {"revision":1,"correctIndex":0},
+  "HMI-060": {"revision":1,"correctIndex":3}
 });
 // END GENERATED HMI QUIZ BANK
 
-const QUIZ_RECEIVER_VERSION = '2026-11-25.2';
+const QUIZ_RECEIVER_VERSION = '2026-11-25.3';
 const QUIZ_RESULTS_SHEET_NAME = 'HMI Quiz Results';
 const QUIZ_RESULTS_HEADERS = Object.freeze([
   'Submitted At',
@@ -215,7 +115,7 @@ function doGet() {
     if (!sheet) throw new Error('Results tab is missing. Run setupQuizResults.');
     checkHeaders_(sheet);
     return jsonResponse_({ ok: true, service: 'ACE HMI Primer quiz results', storage: 'bound_workbook', receiverVersion: QUIZ_RECEIVER_VERSION,
-      bankVersion: HMI_QUIZ_BANK_VERSION, questionCount: Object.keys(HMI_QUIZ_BANK).length });
+      bankVersion: HMI_QUIZ_BANK_VERSION, questionCount: Object.keys(HMI_QUIZ_BANK).length, questionIds: Object.keys(HMI_QUIZ_BANK) });
   } catch (error) {
     return jsonResponse_({ ok: false, service: 'ACE HMI Primer quiz results', error: String(error.message || error), receiverVersion: QUIZ_RECEIVER_VERSION });
   }
@@ -263,12 +163,12 @@ function validateQuizPayload_(payload) {
   if (typeof payload.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) || payload.email.length > 254) throw new Error('Invalid email.');
   if (!/^[A-Za-z0-9-]{8,100}$/.test(String(payload.sessionId || ''))) throw new Error('Invalid session ID.');
   if (!Array.isArray(payload.questionIds) || payload.questionIds.length !== 15 || new Set(payload.questionIds).size !== 15 ||
-      !payload.questionIds.every(id => /^HMI-\d{3}$/.test(id) && Number(id.slice(4)) >= 1 && Number(id.slice(4)) <= 40)) throw new Error('Expected 15 distinct HMI question IDs.');
+      !payload.questionIds.every(id => /^HMI-\d{3}$/.test(id) && Number(id.slice(4)) >= 1 && Object.prototype.hasOwnProperty.call(HMI_QUIZ_BANK, id))) throw new Error('Expected 15 distinct HMI question IDs.');
   if (!payload.answers || typeof payload.answers !== 'object' || Array.isArray(payload.answers) ||
       Object.keys(payload.answers).length !== 15 || !payload.questionIds.every(id => Number.isInteger(payload.answers[id]) && payload.answers[id] >= 0 && payload.answers[id] < 4)) throw new Error('Invalid quiz answers.');
   if (payload.total !== 15 || !Number.isInteger(payload.score) || payload.score < 0 || payload.score > 15) throw new Error('Invalid quiz score.');
   if (!Number.isFinite(payload.percentage) || Math.abs(payload.percentage - payload.score / 15 * 100) > 0.11) throw new Error('Invalid percentage.');
-  if (!Number.isInteger(payload.masteredTotal) || payload.masteredTotal < 0 || payload.masteredTotal > 40) throw new Error('Invalid mastery count.');
+  if (!Number.isInteger(payload.masteredTotal) || payload.masteredTotal < 0 || payload.masteredTotal > Object.keys(HMI_QUIZ_BANK).length) throw new Error('Invalid mastery count.');
   if (!Number.isInteger(payload.bankVersion) || payload.bankVersion < 1 || !Array.isArray(payload.questionRevisions) ||
       payload.questionRevisions.length !== 15 || !payload.questionRevisions.every(n => Number.isInteger(n) && n > 0)) throw new Error('Invalid bank revision.');
   if (!Array.isArray(payload.incorrectQuestionIds) || new Set(payload.incorrectQuestionIds).size !== payload.incorrectQuestionIds.length ||

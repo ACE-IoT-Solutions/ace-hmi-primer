@@ -2,7 +2,7 @@ export const glossary = [
   [
     "HMI",
     "The hardware and software through which users monitor and interact with a process control system.",
-    "3.1; Introduction",
+    "3.1.21",
   ],
   [
     "Situation awareness",
@@ -77,7 +77,7 @@ export const glossary = [
   [
     "Faceplate",
     "A compact interface for an equipment item or control function, often shown as a popup.",
-    "7.2.1.6",
+    "3.1.17; 7.2.1.6",
   ],
   [
     "Trend",
@@ -128,5 +128,91 @@ export const glossary = [
     "Command and proof",
     "Requested equipment action and separately observed status. A request alone does not establish the physical response.",
     "ACE practice; related to 8.3.4",
+  ],
+  [
+    "Alarm",
+    "An abnormal equipment or process condition requiring an operator response, indicated audibly or visually.",
+    "3.1.1",
+  ],
+  [
+    "Alert",
+    "An indication requiring awareness, kept separate from alarms because it does not meet the alarm criteria.",
+    "3.1.2",
+  ],
+  [
+    "Display style",
+    "The form used to present information on a display or a region of it.",
+    "3.1.15; 6.2",
+  ],
+  [
+    "Dashboard",
+    "A display that brings selected indicators together to support a defined monitoring task.",
+    "3.1.13",
+  ],
+  [
+    "Drill-down",
+    "Navigation from a broad view to more focused information.",
+    "3.1.16",
+  ],
+  [
+    "Yoking",
+    "Opening a related combination of displays or contents through one navigation action.",
+    "3.1.46; 7.2.2",
+  ],
+  [
+    "Popup",
+    "A secondary display shown over part of another display, often for intermittent detail or interaction.",
+    "3.1.29",
+  ],
+  [
+    "Graphic element",
+    "A constituent visual item from which a display or symbol is built.",
+    "3.1.18",
+  ],
+  [
+    "Graphic symbol",
+    "A visual representation with an assigned equipment, process or functional meaning.",
+    "3.1.19",
+  ],
+  [
+    "Console",
+    "An operator workspace comprising one or more stations and supporting arrangements.",
+    "3.1.9",
+  ],
+  [
+    "Station",
+    "A user interface location comprising monitor(s), software, input devices and related outputs.",
+    "3.1.37",
+  ],
+  ["Screen", "The image-showing portion of a single monitor.", "3.1.33"],
+  [
+    "Platform",
+    "The hardware and software foundation supporting the HMI application.",
+    "3.1.27",
+  ],
+  [
+    "Script",
+    "Code that performs tasks within or in support of the HMI platform.",
+    "3.1.34",
+  ],
+  [
+    "Usability",
+    "How effectively, efficiently and satisfactorily specified users achieve goals in their context.",
+    "3.1.43",
+  ],
+  [
+    "Commissioning",
+    "Final testing, field checks and documentation with process-data connections to confirm requirements.",
+    "3.1.8; 4.4.5",
+  ],
+  [
+    "Aspect ratio",
+    "The ratio of horizontal to vertical screen dimensions in pixels; changing it can distort a display.",
+    "3.1.3",
+  ],
+  [
+    "Override / forced value",
+    "An applied state in which an explicit manual or higher-priority value holds a point instead of its normal automatic demand.",
+    "ACE practice; 9.1.1(c, k)",
   ],
 ];

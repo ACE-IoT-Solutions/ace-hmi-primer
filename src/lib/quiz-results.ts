@@ -24,6 +24,41 @@ export function isEndpointConfigured(endpoint = resultsEndpoint): boolean {
     endpoint,
   );
 }
+/** Keep the existing core-bank receiver working during an expanded-bank rollout. */
+export async function receiverQuestionPool(
+  endpoint = resultsEndpoint,
+  fetcher: typeof fetch = fetch,
+) {
+  if (!isEndpointConfigured(endpoint)) return [...questions];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetcher(endpoint, {
+      credentials: "omit",
+      signal: controller.signal,
+    });
+    const health = await response.json();
+    if (
+      response.ok &&
+      health?.ok === true &&
+      Number.isInteger(health.questionCount) &&
+      health.questionCount >= quizLength
+    ) {
+      const ids = Array.isArray(health.questionIds)
+        ? new Set(health.questionIds)
+        : null;
+      const pool = questions.filter((q) =>
+        ids ? ids.has(q.id) : Number(q.id.slice(4)) <= health.questionCount,
+      );
+      if (pool.length >= quizLength) return pool;
+    }
+  } catch {
+    /* Conservative core-bank fallback preserves compatibility. */
+  } finally {
+    clearTimeout(timer);
+  }
+  return questions.filter((q) => Number(q.id.slice(4)) <= 40);
+}
 export function readParticipant(
   storage: Pick<Storage, "getItem">,
   requireRemoteConsent = isEndpointConfigured(),
