@@ -75,6 +75,8 @@ The [reference-project review](docs/reference-project-review.md) explains which 
 
 In **Design lab → Four display levels in buildings**, follow one case through an operator overview (Level 1), West building air-service operation and routine controls (Level 2), AHU cooling-subsystem evidence (Level 3), and a selected point’s diagnostic faceplate/procedure (Level 4). Switch between campus and single-building responsibility, then compare valve-travel, warm-water, stale-feedback and shared-plant faults. The same case and accepted target stay in context as you navigate. The comparison exercise also links directly to this workshop.
 
+The four views are original workstation graphics: a site service plan and register, an AHU air-path schematic, a coil-water piping/instrumentation display with travel comparison, and a floating point inspector over the equipment drawing. They share navigation, condition indication, connection status and an event tray with alarm acknowledgement. Equipment and sensor tags provide keyboard-accessible drill-down. The operating setpoint opens a controller popup with review, confirmation and acknowledgement; Level 4 provides point, interlock and procedure sections. Teaching notes sit outside the workstation.
+
 The levels describe the display’s task and information scope, not a fixed campus/building/floor/equipment folder tree. The workshop includes alternative mappings for office services, campus chilled-water plant and school heating systems. All bindings, engineering ranges, interlock states and reference-service values are original teaching examples; the source standard is not reproduced.
 
 ## GitHub Pages deployment

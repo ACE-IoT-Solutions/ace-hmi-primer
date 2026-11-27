@@ -28,12 +28,11 @@ test("phase 0: stale history leaves a visible gap through now and unit changes s
     .getByRole("combobox", { name: "Lab exercise", exact: true })
     .selectOption("hierarchy");
   await page.getByRole("button", { name: "LEVEL 3 Detail" }).click();
-  await expect(page.locator(".hierarchy-detail")).toContainText(
-    "freeze interlock",
-  );
+  await expect(page.locator(".building-equipment-detail")).toBeVisible();
   await page.getByRole("button", { name: "LEVEL 4 Diagnostics" }).click();
-  await expect(page.locator(".hierarchy-detail")).toContainText(
-    "operating procedure",
+  await page.getByRole("button", { name: "Procedure", exact: true }).click();
+  await expect(page.locator(".point-procedures")).toContainText(
+    "approved site procedure",
   );
   await page.goto("/#learn/lifecycle");
   await expect(page.locator(".requirement-card li")).toHaveCount(6);

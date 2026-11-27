@@ -1,143 +1,159 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { LabSnapshot } from "../lib/lab";
-import { buildingCondition } from "../lib/building-hierarchy";
+import type { BuildingPoint } from "../lib/building-hierarchy";
 import { useTemperatureUnits } from "../lib/units";
-import ProcessIntegrity from "./ProcessIntegrity.vue";
+import AirSystemSchematic from "./AirSystemSchematic.vue";
 import TemperatureTrend from "./TemperatureTrend.vue";
 const props = defineProps<{ snapshot: LabSnapshot; target: number }>();
-const emit = defineEmits<{ detail: [] }>();
+const emit = defineEmits<{
+  detail: [];
+  inspect: [point: BuildingPoint];
+  control: [];
+}>();
 const units = useTemperatureUnits();
-const condition = computed(() =>
-  buildingCondition(props.snapshot, props.target),
-);
+const override = computed(() => props.snapshot.points.coolingValve.override);
 </script>
 <template>
   <div class="building-operation">
-    <ProcessIntegrity :snapshot="snapshot" />
-    <div class="screen-status" role="status">
-      <strong>{{ condition }}</strong
-      ><span>West building · AHU-01 · Floors 1–2</span>
-    </div>
-    <div class="service-values">
-      <div>
-        <span>{{
-          snapshot.stale ? "Retained supply temperature" : "Supply temperature"
-        }}</span
-        ><strong>{{ units.temperature(snapshot.actual) }}</strong>
+    <div class="service-values ws-metrics">
+      <div class="ws-metric">
+        <span>SUPPLY TEMPERATURE</span
+        ><strong>{{ units.temperature(snapshot.actual) }}</strong
+        ><small>{{
+          snapshot.stale ? "STALE / RETAINED" : "SAT-01 · good"
+        }}</small>
       </div>
-      <div>
-        <span>Accepted target</span
-        ><strong>{{ units.temperature(target) }}</strong>
+      <div class="ws-metric">
+        <span>ACCEPTED TARGET</span
+        ><button
+          aria-label="Open supply temperature controller"
+          class="ws-setpoint-button"
+          @click="emit('control')"
+        >
+          <strong>{{ units.temperature(target) }}</strong> ↗</button
+        ><small>SAT control loop</small>
       </div>
-      <div>
-        <span>Fan command / proof</span
+      <div class="ws-metric">
+        <span>VALVE CMD / POSITION</span
+        ><strong
+          >{{ snapshot.valveCommand }}% /
+          {{ snapshot.valvePosition ?? "—" }}%</strong
+        ><small
+          >{{
+            snapshot.points.valvePosition.quality.toUpperCase()
+          }}
+          position</small
+        >
+      </div>
+      <div class="ws-metric">
+        <span>FAN CMD / RUN PROOF</span
         ><strong
           >{{ snapshot.fanCommand ? "ON" : "OFF" }} /
           {{ snapshot.fanProof ? "ON" : "OFF" }}</strong
-        >
-      </div>
-      <div>
-        <span>Valve command / position</span
-        ><strong
-          >{{ snapshot.valveCommand }}% /
-          {{ snapshot.valvePosition ?? "Unknown"
-          }}{{ snapshot.valvePosition === null ? "" : "%" }}</strong
-        ><small>Feedback {{ snapshot.points.valvePosition.quality }}</small>
+        ><small>{{
+          snapshot.commState === "disconnected" ? "RETAINED" : "SF-01 status"
+        }}</small>
       </div>
     </div>
-    <div class="service-path" aria-label="Operating service relationships">
-      <section>
-        <h4>Utility input</h4>
-        <p>
-          Entering coil water
-          {{
-            snapshot.enteringWater === null
-              ? "unknown"
-              : units.temperature(snapshot.enteringWater)
-          }}
-          · {{ snapshot.points.enteringWater.quality }}
-        </p>
-        <p>Check upstream chilled-water availability when supply is warm.</p>
+    <div class="ws-grid">
+      <section class="ws-panel">
+        <div class="ws-panel-heading">
+          <strong>AHU-01 / Air handling</strong
+          ><span>Select coil for detail · select SAT for point inspector</span>
+        </div>
+        <AirSystemSchematic
+          :snapshot="snapshot"
+          :target="target"
+          @detail="emit('detail')"
+          @inspect="emit('inspect', $event)"
+        />
       </section>
-      <section>
-        <h4>Air service</h4>
-        <p>
-          AHU-01 supplies Floors 1–2. Follow command, proof, temperature and
-          recent direction together.
-        </p>
-      </section>
-      <section>
-        <h4>Consumers</h4>
-        <p>
-          Zone 101 comfort alarm:
-          {{
-            snapshot.alarms.some((a) => a.id === "zone-warm")
-              ? "active"
-              : "not reported in this case"
-          }}.
-        </p>
-        <p>
-          Individual zone measurements are not modeled; supply temperature does
-          not establish every room’s condition.
-        </p>
-      </section>
+      <aside class="ws-side">
+        <section class="ws-panel">
+          <div class="ws-panel-heading">
+            <strong>SAT response</strong><span>30 min</span>
+          </div>
+          <TemperatureTrend :snapshot="snapshot" :target="target" />
+        </section>
+        <section class="ws-panel">
+          <div class="ws-panel-heading">
+            <strong>Loop / source</strong><span>CLV-01</span>
+          </div>
+          <dl class="ws-keyvalue ws-pad">
+            <div>
+              <dt>Automatic demand</dt>
+              <dd>{{ snapshot.controlDemand }}%</dd>
+            </div>
+            <div>
+              <dt>Effective command</dt>
+              <dd>{{ snapshot.valveCommand }}%</dd>
+            </div>
+            <div>
+              <dt>Override</dt>
+              <dd>
+                {{
+                  override
+                    ? `Priority ${override.priority} · ${override.source}`
+                    : "None"
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Position quality</dt>
+              <dd>{{ snapshot.points.valvePosition.quality.toUpperCase() }}</dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
     </div>
-    <TemperatureTrend :snapshot="snapshot" :target="target" />
-    <button class="primary" @click="emit('detail')">
-      Investigate AHU-01 cooling subsystem
-    </button>
-    <p class="source">
-      Important abnormalities and lost data remain visible here. The next level
-      adds evidence; it does not hide the first indication of a problem.
-    </p>
+    <section class="ws-panel service-path">
+      <div class="ws-panel-heading">
+        <strong>Service relationships</strong
+        ><span>West / air distribution</span>
+      </div>
+      <div class="ws-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Upstream utility</th>
+              <th>Air system</th>
+              <th>Served area</th>
+              <th>Consumer condition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                CHW branch ·
+                {{
+                  snapshot.enteringWater === null
+                    ? "—"
+                    : units.temperature(snapshot.enteringWater)
+                }}
+                entering
+              </td>
+              <td>AHU-01 / SF-01 / CC-01</td>
+              <td>Floors 1–2 · Zone 101</td>
+              <td>
+                {{
+                  snapshot.alarms.some((a) => a.id === "zone-warm")
+                    ? "Zone 101 comfort alarm ACTIVE"
+                    : "Room sensors not included"
+                }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 <style scoped>
-.service-values {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1rem 0;
-}
-.service-values > div {
-  background: #e4e8eb;
-  padding: 1rem;
-}
-.service-values span,
-.service-values small {
-  display: block;
-  font-size: 0.8rem;
-}
-.service-values strong {
-  display: block;
-  font-size: 1.35rem;
+.ws-setpoint-button {
+  margin: 0.2rem 0;
 }
 .service-path {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-.service-path section {
-  padding: 1rem;
-  border: 1px solid #9ba7b2;
-}
-.service-path h4 {
-  margin: 0 0 0.5rem;
-}
-.service-path p {
-  font-size: 0.9rem;
-  margin-bottom: 0;
-}
-.screen-status {
-  margin: 1rem 0;
-}
-@media (max-width: 720px) {
-  .service-values {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .service-path {
-    grid-template-columns: 1fr;
-  }
+  margin-top: 0.9rem;
 }
 </style>

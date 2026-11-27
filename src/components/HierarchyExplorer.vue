@@ -10,22 +10,23 @@ import {
 import BuildingOverview from "./BuildingOverview.vue";
 import BuildingOperation from "./BuildingOperation.vue";
 import BuildingPointDiagnostics from "./BuildingPointDiagnostics.vue";
-import ProcessIntegrity from "./ProcessIntegrity.vue";
-import ValveProof from "./ValveProof.vue";
-import WaterDiagnostics from "./WaterDiagnostics.vue";
-import CommandDemo from "./CommandDemo.vue";
+import OperatorWorkstation from "./OperatorWorkstation.vue";
+import BuildingEquipmentDetail from "./BuildingEquipmentDetail.vue";
+import WorkstationTargetControl from "./WorkstationTargetControl.vue";
 const props = defineProps<{ snapshot: LabSnapshot }>();
 const scenario = defineModel<Scenario>("scenario", { required: true });
 const target = defineModel<number>("target", { required: true });
 const emit = defineEmits<{
   state: [value: WriteState];
   valveAccepted: [value: number];
+  acknowledge: [id: string];
 }>();
 const level = ref(1),
   assignment = ref("campus"),
   point = ref<BuildingPoint>("valvePosition");
 const title = ref<HTMLElement | null>(null);
 const visitedOperation = ref(false);
+const controlsOpen = ref(false);
 const current = computed(() => hierarchyLevels[level.value - 1]!);
 const paths = computed(() => [
   assignment.value === "campus"
@@ -39,6 +40,7 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
   if (selectedPoint) point.value = selectedPoint;
   level.value = value;
   if (value === 2) visitedOperation.value = true;
+  else controlsOpen.value = false;
   await nextTick();
   title.value?.focus({ preventScroll: true });
 }
@@ -48,14 +50,13 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
     <div class="section-top">
       <div>
         <span class="eyebrow">BUILDING WORKSHOP / FOUR DISPLAY LEVELS</span>
-        <h2>Follow a building problem from awareness to evidence.</h2>
+        <h2>Four levels on an operator’s workstation.</h2>
       </div>
       <span class="tag">§ 6.3.1–6.3.4</span>
     </div>
     <p>
-      A campus operator and a single-building operator can both use all four
-      levels. The levels describe the job and scope of a display; they are not a
-      mandatory campus/building/floor/equipment folder tree.
+      Choose a building case, then follow the same service through four original
+      workstation graphics.
     </p>
     <div class="hierarchy-controls">
       <label class="field"
@@ -79,6 +80,7 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
       <button
         v-for="(item, i) in hierarchyLevels"
         :key="item.name"
+        :aria-label="`LEVEL ${i + 1} ${item.name}`"
         :aria-pressed="level === i + 1"
         @click="navigate(i + 1)"
       >
@@ -104,7 +106,7 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
       <header>
         <span class="eyebrow">LEVEL {{ level }} · {{ current.scope }}</span>
         <h3 ref="title" tabindex="-1">{{ current.task }}</h3>
-        <p>{{ current.purpose }}</p>
+
         <p
           v-if="snapshot.writeState.phase !== 'idle'"
           class="hierarchy-write-state"
@@ -114,7 +116,14 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
           {{ snapshot.writeState.message }}
         </p>
       </header>
-      <div class="level-screen">
+      <OperatorWorkstation
+        :snapshot="snapshot"
+        :target="target"
+        :level="level"
+        :assignment="assignment"
+        @navigate="navigate($event)"
+        @acknowledge="emit('acknowledge', $event)"
+      >
         <BuildingOverview
           v-if="level === 1"
           :snapshot="snapshot"
@@ -122,72 +131,47 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
           :assignment="assignment"
           @investigate="navigate(2)"
         />
-        <template v-else-if="level === 2"
-          ><BuildingOperation
-            :snapshot="snapshot"
-            :target="target"
-            @detail="navigate(3)"
-          />
-        </template>
-        <template v-else-if="level === 3">
-          <ProcessIntegrity :snapshot="snapshot" />
-          <h4>AHU-01 cooling coil / trace the response</h4>
-          <div class="coil-path" aria-label="Coil diagnostic relationships">
-            <span>Water supply → coil → water return</span
-            ><span>Return air → coil → fan → supply air</span
-            ><span
-              >Automatic demand → effective command → independent valve
-              position</span
-            >
-          </div>
-          <div class="equipment-evidence">
-            <ValveProof :snapshot="snapshot" /><WaterDiagnostics
-              :snapshot="snapshot"
-            />
-          </div>
-          <p>
-            Compare command with independent feedback before blaming the water
-            supply. Position agreement does not establish water flow; the water
-            temperatures are supporting observations.
-          </p>
-          <p>
-            Fan start permissive and freeze interlock evidence are available in
-            the focused diagnostics. A failure indication must also be visible
-            at the operating level.
-          </p>
-          <div class="actions">
-            <button class="primary" @click="navigate(4, 'valvePosition')">
-              Inspect valve position point</button
-            ><button @click="navigate(4, 'enteringWater')">
-              Inspect entering water point</button
-            ><button @click="navigate(4, 'supplyTemperature')">
-              Inspect supply temperature point
-            </button>
-          </div>
-        </template>
-        <BuildingPointDiagnostics
-          v-else
-          v-model:point="point"
+        <BuildingOperation
+          v-else-if="level === 2"
           :snapshot="snapshot"
+          :target="target"
+          @detail="navigate(3)"
+          @inspect="navigate(4, $event)"
+          @control="controlsOpen = true"
         />
-        <details
+        <BuildingEquipmentDetail
+          v-else-if="level === 3"
+          :snapshot="snapshot"
+          @inspect="navigate(4, $event)"
+        />
+        <div v-else class="ws-diagnostic-stage">
+          <div class="ws-diagnostic-background" aria-hidden="true" inert>
+            <BuildingEquipmentDetail :snapshot="snapshot" background />
+          </div>
+          <BuildingPointDiagnostics
+            v-model:point="point"
+            :snapshot="snapshot"
+            @close="navigate(3)"
+          />
+        </div>
+        <div
           v-if="visitedOperation"
-          v-show="level === 2"
-          class="routine-controls"
+          v-show="level === 2 && controlsOpen"
+          class="ws-control-host"
         >
-          <summary>Routine controls · review a target change</summary>
-          <CommandDemo
+          <WorkstationTargetControl
             :key="scenario"
             v-model:target="target"
             :snapshot="snapshot"
             @state="emit('state', $event)"
-            @valve-accepted="emit('valveAccepted', $event)"
+            @close="controlsOpen = false"
           />
-        </details>
-      </div>
+        </div>
+      </OperatorWorkstation>
     </div>
     <div class="hierarchy-coaching">
-      <strong>Try the complete path</strong>
+      <strong>{{ current.task }} · Level {{ level }}</strong>
+      <p>{{ current.purpose }}</p>
       <p>
         Select “Valve command / position mismatch.” At Level 1 locate the
         affected service; at Level 2 compare its target, response and
@@ -241,10 +225,14 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
       </div>
     </details>
     <p class="source">
-      § 6.3–6.3.4; 7.2.2 · Standard guidance. These original building mappings
-      are ACE teaching examples. Four display levels are a recommended maximum,
-      not four required screens or clicks. An AHU can appear at several levels
-      with different jobs; direct and relational links can bypass intermediate
+      Graphics, point bindings, engineering ranges, reference-service values and
+      interlock states are original fixed teaching examples. A campus operator
+      and a single-building operator can both use all four levels; these are
+      display jobs, not a campus/building/floor/equipment folder tree. §
+      6.3–6.3.4; 7.2.2 · Standard guidance. These original building mappings are
+      ACE teaching examples. Four display levels are a recommended maximum, not
+      four required screens or clicks. An AHU can appear at several levels with
+      different jobs; direct and relational links can bypass intermediate
       displays.
     </p>
   </section>
@@ -257,7 +245,19 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
 }
 .building-hierarchy .level-buttons {
   max-width: none;
+  margin: 0.8rem 0;
 }
+.building-hierarchy .level-buttons button {
+  padding: 0.55rem 0.8rem;
+}
+.building-hierarchy .level-buttons small {
+  display: inline;
+  margin-right: 0.5rem;
+}
+.hierarchy-controls .field {
+  margin: 0;
+}
+
 .hierarchy-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -281,34 +281,29 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
 .building-level > header h3 {
   font-size: 1.6rem;
 }
-.level-screen {
-  padding: 1.5rem;
-  background: #eef0f2;
-  color: #263441;
-  border: 1px solid #9ba7b2;
+.ws-control-host {
+  position: absolute;
+  top: 135px;
+  right: 1rem;
+  z-index: 4;
+  width: min(400px, calc(100% - 2rem));
 }
-.level-screen :deep(.eyebrow) {
-  color: #365164;
-}
-.level-screen :deep(.source) {
-  color: #495765;
-}
-.equipment-evidence {
+.ws-diagnostic-stage {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  padding: 1rem;
-  border: 1px solid #9ba7b2;
-  background: #fafbfc;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 650px;
 }
-.coil-path {
-  display: grid;
-  gap: 0.5rem;
-  margin: 1rem 0;
+.ws-diagnostic-background {
+  grid-area: 1 / 1;
+  opacity: 0.55;
+  pointer-events: none;
 }
-.coil-path span {
-  padding: 0.6rem;
-  background: #e1e5e8;
+.ws-diagnostic-stage > .building-point {
+  grid-area: 1 / 1;
+  z-index: 1;
+  align-self: start;
+  justify-self: end;
+  margin: 0.5rem;
 }
 .hierarchy-coaching {
   margin: 1.5rem 0;
@@ -318,18 +313,6 @@ async function navigate(value: number, selectedPoint?: BuildingPoint) {
 }
 .hierarchy-coaching p {
   margin-bottom: 0;
-}
-.routine-controls {
-  margin-top: 1.5rem;
-}
-.routine-controls :deep(.command-demo) {
-  display: block;
-  padding: 1rem;
-  margin-top: 1rem;
-  color: var(--ace-text);
-}
-.routine-controls :deep(.command-demo form) {
-  margin-top: 1rem;
 }
 .mapping-scroll {
   overflow-x: auto;
@@ -353,13 +336,19 @@ td {
   border: 1px solid var(--ace-border-strong);
 }
 @media (max-width: 720px) {
-  .hierarchy-controls,
-  .equipment-evidence {
+  .hierarchy-controls {
     grid-template-columns: 1fr;
   }
-  .level-screen {
-    padding: 0.9rem;
+  .ws-diagnostic-background {
+    display: none;
   }
+  .ws-diagnostic-stage {
+    min-height: 0;
+  }
+  .ws-diagnostic-stage > .building-point {
+    margin: 0;
+  }
+
   .level-buttons {
     grid-template-columns: 1fr 1fr;
   }

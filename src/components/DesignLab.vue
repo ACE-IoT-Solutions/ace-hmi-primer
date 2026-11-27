@@ -129,6 +129,7 @@ function selectExercise() {
     v-model:target="target"
     :snapshot="snapshot"
     @state="writeState = $event"
+    @acknowledge="(id) => acknowledged.push(id)"
     @valve-accepted="valveWrite = $event"
   />
   <AlarmOverview

@@ -2,8 +2,9 @@
 import { computed } from "vue";
 import type { LabSnapshot } from "../lib/lab";
 import { buildingCondition } from "../lib/building-hierarchy";
-import { waterDiagnostic } from "../lib/coil-diagnostics";
 import { useTemperatureUnits } from "../lib/units";
+import CampusOverviewGraphic from "./CampusOverviewGraphic.vue";
+import TemperatureTrend from "./TemperatureTrend.vue";
 const props = defineProps<{
   snapshot: LabSnapshot;
   target: number;
@@ -14,155 +15,186 @@ const units = useTemperatureUnits();
 const condition = computed(() =>
   buildingCondition(props.snapshot, props.target),
 );
-const plant = computed(() =>
-  props.snapshot.commState === "disconnected"
-    ? "Current utility condition unknown"
-    : props.snapshot.alarms.some((a) => a.id === "chiller-trip")
-      ? "HIGH · Chiller-01 trip · upstream of AHU-01"
-      : waterDiagnostic(props.snapshot).warm
-        ? "Water warm at AHU inlet · verify upstream supply"
-        : props.snapshot.points.enteringWater.quality === "good" &&
-            props.snapshot.enteringWater !== null
-          ? `Water at AHU inlet ${units.temperature(props.snapshot.enteringWater)} · flow not measured`
-          : "Water supply observation unavailable",
-);
+const lost = computed(() => props.snapshot.commState === "disconnected");
 </script>
 <template>
   <div class="building-overview">
-    <p class="hierarchy-scope">
-      {{
-        assignment === "campus"
-          ? "Campus facilities operator · West, East and central utilities"
-          : "West building operator · air systems, occupied areas and utility interface"
-      }}
-    </p>
-    <div class="overview-areas">
-      <article class="area-card selected-area">
-        <span class="eyebrow">{{
-          assignment === "campus" ? "WEST BUILDING" : "WEST / AIR SYSTEMS"
-        }}</span>
-        <h4>{{ condition }}</h4>
-        <p>
-          AHU-01 supply {{ units.temperature(snapshot.actual) }} / target
-          {{ units.temperature(target)
-          }}{{ snapshot.stale ? " · retained" : "" }}
-        </p>
-        <p>
-          Serves Floors 1–2 · follow the affected service before opening point
-          details.
-        </p>
-        <button class="primary" @click="emit('investigate')">
-          Investigate West air service
-        </button>
-      </article>
-      <article class="area-card">
-        <span class="eyebrow">{{
-          assignment === "campus" ? "EAST BUILDING" : "WEST / OTHER SERVICES"
-        }}</span>
-        <h4>
-          {{
-            snapshot.commState === "disconnected"
-              ? "Current service unknown"
-              : "Reference air service within target"
-          }}
-        </h4>
-        <p>
-          {{ assignment === "campus" ? "East AHU-02" : "West AHU-02" }} supply
-          {{ units.temperature(16.3) }} / target {{ units.temperature(16) }}.
-        </p>
-        <p>
-          {{
-            snapshot.commState === "disconnected"
-              ? "Retained reference values · quality unknown"
-              : "Stable reference snapshot · quality good · no active sample alarms"
-          }}.
-        </p>
-        <p class="source">
-          Independent fixed teaching row; other services are outside this
-          example, not assumed healthy.
-        </p>
-      </article>
-      <article class="area-card">
-        <span class="eyebrow">{{
+    <div class="ws-metrics">
+      <div class="ws-metric">
+        <span>RESPONSIBILITY</span
+        ><strong>{{
+          assignment === "campus" ? "North campus" : "West building"
+        }}</strong
+        ><small class="hierarchy-scope">{{
           assignment === "campus"
-            ? "CENTRAL UTILITIES"
-            : "CHILLED-WATER INTERFACE"
-        }}</span>
-        <h4>{{ plant }}</h4>
-        <p>
-          Central plant → AHU-01 coil → West air service. A shared utility can
-          affect several consumers.
-        </p>
-      </article>
+            ? "Campus facilities operator"
+            : "West building operator"
+        }}</small>
+      </div>
+      <div
+        class="ws-metric"
+        :class="{ attention: condition !== 'Within operating band' }"
+      >
+        <span>WEST SUPPLY / TARGET</span
+        ><strong>{{ units.temperature(snapshot.actual) }}</strong
+        ><small
+          >target {{ units.temperature(target)
+          }}{{ snapshot.stale ? " · RETAINED" : "" }}</small
+        >
+      </div>
+      <div class="ws-metric">
+        <span>SUPPLY DEVIATION</span
+        ><strong>{{
+          snapshot.stale || lost
+            ? "UNKNOWN"
+            : `${snapshot.actual >= target ? "+" : ""}${units.delta(snapshot.actual - target)}`
+        }}</strong
+        ><small
+          >{{
+            snapshot.trend.at(-1)! > snapshot.trend[0]!
+              ? "Recent direction ↑ rising"
+              : "Recent direction ↓ falling"
+          }}{{ snapshot.stale ? " · historical" : "" }}</small
+        >
+      </div>
+      <div class="ws-metric">
+        <span>CONFIGURED ALARMS</span
+        ><strong>{{
+          lost
+            ? "UNVERIFIED"
+            : snapshot.alarms.filter((a) => a.kind === "alarm").length
+        }}</strong
+        ><small
+          >{{
+            snapshot.alarms.filter((a) => a.kind === "alert").length
+          }}
+          maintenance alerts</small
+        >
+      </div>
     </div>
-    <p
-      v-for="alarm in snapshot.alarms.filter(
-        (a) => a.kind === 'alarm' && a.priority === 'high',
-      )"
-      :key="alarm.id"
-      class="overview-alarm"
+    <div class="ws-grid">
+      <section class="ws-panel">
+        <div class="ws-panel-heading">
+          <strong>Building services</strong
+          ><span>West branch selected · select AHU-01 to operate</span>
+        </div>
+        <div
+          class="ws-map-scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Building service plan, scroll horizontally for full plan"
+        >
+          <CampusOverviewGraphic
+            :snapshot="snapshot"
+            :target="target"
+            :assignment="assignment"
+            @investigate="emit('investigate')"
+          />
+        </div>
+      </section>
+      <aside class="ws-side">
+        <section class="ws-panel">
+          <div class="ws-panel-heading">
+            <strong>West AHU-01 / SAT</strong><span>30 min</span>
+          </div>
+          <TemperatureTrend :snapshot="snapshot" :target="target" />
+        </section>
+        <section class="ws-panel">
+          <div class="ws-panel-heading">
+            <strong>Priority conditions</strong><span>West air service</span>
+          </div>
+          <div class="ws-pad">
+            <strong>{{ condition }}</strong>
+            <p
+              v-for="alarm in snapshot.alarms.filter(
+                (a) => a.kind === 'alarm' && a.priority === 'high',
+              )"
+              :key="alarm.id"
+              class="overview-alarm ws-bad-text"
+            >
+              HIGH · {{ alarm.equipment }} · {{ alarm.message }} ·
+              {{ alarm.acknowledged ? "Acknowledged" : "Unacknowledged" }}
+            </p>
+            <p v-if="lost">Current service unknown · last contact 720 s ago</p>
+            <p v-else>AHU-01 · West Floors 1–2</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <section class="ws-panel ws-overview-register">
+      <div class="ws-panel-heading">
+        <strong>Service register</strong
+        ><span>Selected service and reference service</span>
+      </div>
+      <div class="ws-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Measured SAT</th>
+              <th>Target</th>
+              <th>Condition / quality</th>
+              <th>Display</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>West / AHU-01</td>
+              <td>{{ units.temperature(snapshot.actual) }}</td>
+              <td>{{ units.temperature(target) }}</td>
+              <td>{{ condition }}</td>
+              <td>
+                <button
+                  aria-label="Open West air service from register"
+                  @click="emit('investigate')"
+                >
+                  Open operating display ↗
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>{{ assignment === "campus" ? "East" : "West" }} / AHU-02</td>
+              <td>{{ units.temperature(16.3) }}</td>
+              <td>{{ units.temperature(16) }}</td>
+              <td>
+                {{
+                  lost
+                    ? "Current service unknown"
+                    : "Within band · reference snapshot"
+                }}
+              </td>
+              <td>Reference only</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div
+      class="building-dependency ws-service-strip"
+      aria-label="Building service dependency"
     >
-      HIGH · {{ alarm.equipment }} · {{ alarm.message }} ·
-      {{ alarm.acknowledged ? "Acknowledged" : "Unacknowledged" }}
-    </p>
-    <ol class="building-dependency" aria-label="Building service dependency">
-      <li>Central plant / chilled water</li>
-      <li>AHU-01 / supply air</li>
-      <li>West Floors 1–2 / occupied areas</li>
-    </ol>
-    <p class="source">
-      No routine target entry at this level. The overview keeps abnormal
-      conditions and functional dependencies visible across the operator’s
-      responsibility.
-    </p>
+      <span>Central plant / chilled water</span><span>→</span
+      ><span>AHU-01 / supply air</span><span>→</span
+      ><span>West Floors 1–2</span>
+    </div>
   </div>
 </template>
 <style scoped>
-.overview-areas {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+.ws-map-scroll {
+  overflow-x: auto;
 }
-.area-card {
-  padding: 1rem;
-  border: 1px solid #9ba7b2;
-  background: #fafbfc;
+.ws-map-scroll :deep(svg) {
+  min-width: 630px;
 }
-.area-card h4 {
-  font-size: 1.1rem;
-  margin: 0.6rem 0;
+.ws-overview-register {
+  margin-top: 0.9rem;
 }
-.area-card p {
-  font-size: 0.9rem;
-}
-.selected-area {
-  border-top: 4px solid #365164;
-}
-.area-card .eyebrow {
-  color: #365164;
-}
-.area-card button {
-  width: 100%;
-}
-.building-dependency {
+.ws-service-strip {
   display: flex;
   flex-wrap: wrap;
-  padding: 0;
-  list-style: none;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-.building-dependency li {
-  background: #e1e5e8;
-  border: 1px solid #9ba7b2;
-  padding: 0.7rem;
-}
-.building-dependency li:not(:last-child)::after {
-  content: " →";
-}
-@media (max-width: 800px) {
-  .overview-areas {
-    grid-template-columns: 1fr;
-  }
+  gap: 0.6rem;
+  color: #526773;
+  font-size: 11px;
+  margin-top: 0.8rem;
 }
 </style>
