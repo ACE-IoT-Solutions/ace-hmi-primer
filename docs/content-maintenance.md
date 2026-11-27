@@ -63,3 +63,13 @@ The `valve-stuck` case has 92% command, 5% reported position, 6 °C entering wat
 `ValveProof.vue` and `WaterDiagnostics.vue` render the same evidence in both contextual views. Keep command source/override, position feedback, sample quality and age distinct. The 120 s allowance, ±10 percentage-point tolerance and 6–8 °C supply range are illustrative site choices, not standard requirements or universal actuator specifications. Validate actual settings and installed feedback mechanisms for a facility. The model does not claim that a position mismatch proves a mechanically stuck valve; it directs investigation to actuator, linkage, valve travel and feedback.
 
 Engineering context: [Belimo Energy Valve operating manual](https://www.belimo.com/mam/americas/technical_documents/Tech%20docs/belimo_ev-4.0-operations_manual_en-us.pdf), troubleshooting discussion, distinguishes valve/actuator, temperature sensing, hydronic availability and flow issues. This is supporting engineering context, not the source of the example's numerical settings.
+
+## Building hierarchy workshop
+
+`HierarchyExplorer.vue` coordinates the dedicated **Four display levels in buildings** exercise. `BuildingOverview.vue`, `BuildingOperation.vue` and `BuildingPointDiagnostics.vue` render distinct scopes, while Level 3 reuses the shared valve and water diagnostic components. `building-hierarchy.ts` supplies the four display jobs, case choices, summary conditions and point-faceplate metadata.
+
+Preserve the difference between a display level and a geographic navigation folder. Both campus and single-building operators can have four display scopes. Important abnormalities and missing data must remain visible in the overview/operating views; deeper levels add supporting evidence. The fixed AHU-02 benchmark is an independent teaching row, not proof that every unmodeled service is healthy. Whole-display loss makes that reference row unverified as well.
+
+The scenario, accepted target, units, write state and diagnostic observations remain shared as the operator moves between levels. Level 2 hosts routine controls; keep its simulated controller poll alive while navigating so a pending write does not silently disappear. Level 4 distinguishes point identity, source, engineering range, quality and snapshot age and gives access to diagnostic prompts, interlocks and permissives. Bindings/ranges and interlock states are illustrative; do not turn these prompts into an invented site procedure. A faceplate can provide Level 4 without requiring a separate full-screen display.
+
+The hierarchy lesson and mappings are original summaries checked against the local licensed edition’s § 6.3–6.3.4 and § 7.2.2. No standard figures, page images or copied passages are bundled.

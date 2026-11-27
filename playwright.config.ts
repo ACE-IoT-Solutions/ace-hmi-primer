@@ -9,6 +9,7 @@ export default defineConfig({
         "app.spec.ts",
         "gap-review.spec.ts",
         "coil-diagnostics.spec.ts",
+        "building-hierarchy.spec.ts",
       ],
     },
     {

@@ -99,9 +99,9 @@ const baseLessons: Lesson[] = [
       },
     ],
     example:
-      "A building operator might use a campus overview (L1), an AHU operating display (L2), an AHU cooling subsystem display (L3), and a sensor diagnostic faceplate (L4). This is an ACE mapping, not a prescribed ISA building hierarchy.",
+      "An operator might use a campus or single-building services overview (L1), a West building air-service operating display with routine controls (L2), an AHU cooling subsystem display with independent valve position and water temperatures (L3), and a feedback-point diagnostic faceplate with quality, sample age, interlocks and procedures (L4). The same AHU can appear at several levels. These are ACE mappings, not a prescribed campus/building/floor/equipment hierarchy.",
     exercise:
-      "Use the lab’s hierarchy explorer. Decide where a maintenance calibration record belongs and where a routine temperature target change belongs.",
+      "Open Four display levels in buildings in the design lab. Follow a valve-travel fault from the overview through air-service operation and coil detail to the position-feedback faceplate. Repeat with stale feedback, then compare campus and single-building operator responsibilities.",
     takeaway:
       "Expose detail when it supports the task while preserving context.",
     clauses: "6.3–6.3.4; 7.2.2",

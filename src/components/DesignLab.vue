@@ -52,7 +52,8 @@ const snapshot = computed(() => {
   };
 });
 const exercises = [
-  ["comparison", "Display comparison and hierarchy"],
+  ["comparison", "Display comparison"],
+  ["hierarchy", "Four display levels in buildings"],
   ["alarms", "S1 · Cascading upset and alarms"],
   ["writes", "S2–S3 · Override and write lifecycle"],
   ["connection", "S4–S5 · Display health and notification"],
@@ -103,13 +104,33 @@ function selectExercise() {
     ><ComparisonPanel
       v-model:scenario="scenario"
       :snapshot="snapshot"
-      :target="target" /><HierarchyExplorer :snapshot="snapshot" /><CommandDemo
+      :target="target"
+    /><CommandDemo
       :key="scenario"
       v-model:target="target"
       :snapshot="snapshot"
       @state="writeState = $event"
       @valve-accepted="valveWrite = $event"
-  /></template>
+    />
+    <div class="panel exercise-panel">
+      <h2>Where does each kind of evidence belong?</h2>
+      <p>
+        Follow the same building case through overview, operation, equipment
+        detail and point diagnostics.
+      </p>
+      <button @click="exercise = 'hierarchy'">
+        Explore four display levels in buildings
+      </button>
+    </div>
+  </template>
+  <HierarchyExplorer
+    v-else-if="exercise === 'hierarchy'"
+    v-model:scenario="scenario"
+    v-model:target="target"
+    :snapshot="snapshot"
+    @state="writeState = $event"
+    @valve-accepted="valveWrite = $event"
+  />
   <AlarmOverview
     v-else-if="exercise === 'alarms'"
     :snapshot="snapshot"

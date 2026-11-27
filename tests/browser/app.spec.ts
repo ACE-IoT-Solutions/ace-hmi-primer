@@ -68,6 +68,9 @@ test("lab distinguishes stale state and separates accepted target from actual te
     .click();
   await expect(page.locator(".measurement")).toContainText("18.0");
   await expect(page.locator(".measurement")).toContainText("18.5");
+  await page
+    .getByRole("combobox", { name: "Lab exercise", exact: true })
+    .selectOption("hierarchy");
   await page.getByRole("button", { name: "LEVEL 4 Diagnostics" }).click();
   await expect(
     page.getByRole("heading", { name: "Can I trust this observation?" }),

@@ -24,6 +24,9 @@ test("phase 0: stale history leaves a visible gap through now and unit changes s
   await expect(page.locator(".operating-card .measurement")).toContainText(
     "65.3",
   );
+  await page
+    .getByRole("combobox", { name: "Lab exercise", exact: true })
+    .selectOption("hierarchy");
   await page.getByRole("button", { name: "LEVEL 3 Detail" }).click();
   await expect(page.locator(".hierarchy-detail")).toContainText(
     "freeze interlock",

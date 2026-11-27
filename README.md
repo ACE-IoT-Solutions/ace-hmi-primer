@@ -71,6 +71,12 @@ The simulated operating display deliberately uses a neutral light surface and qu
 
 The [reference-project review](docs/reference-project-review.md) explains which patterns were adopted from BACnet Studio and CDL Explorer. See [content maintenance](docs/content-maintenance.md) before changing lessons or questions.
 
+## Four display levels in buildings
+
+In **Design lab → Four display levels in buildings**, follow one case through an operator overview (Level 1), West building air-service operation and routine controls (Level 2), AHU cooling-subsystem evidence (Level 3), and a selected point’s diagnostic faceplate/procedure (Level 4). Switch between campus and single-building responsibility, then compare valve-travel, warm-water, stale-feedback and shared-plant faults. The same case and accepted target stay in context as you navigate. The comparison exercise also links directly to this workshop.
+
+The levels describe the display’s task and information scope, not a fixed campus/building/floor/equipment folder tree. The workshop includes alternative mappings for office services, campus chilled-water plant and school heating systems. All bindings, engineering ranges, interlock states and reference-service values are original teaching examples; the source standard is not reproduced.
+
 ## GitHub Pages deployment
 
 The deployment follows BACnet Studio's workflow: pushes to the `deploy` branch (or manual runs of `Deploy to GitHub Pages`) run the tests, check question review files, build the static app, and deploy `dist/` through the `github-pages` environment. Pages uses **GitHub Actions** as its publishing source.
